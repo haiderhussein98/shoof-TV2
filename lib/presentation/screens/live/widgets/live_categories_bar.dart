@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class LiveCategoriesBar extends StatefulWidget {
   final List<Map<String, String>> categories;
@@ -51,7 +50,6 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
     final index = widget.categories.indexWhere((c) => c['id'] == selectedId);
     if (index < 0 || index >= widget.keys.length) return;
 
-    // 1) لو مش مبني، اعمل تمرير تقريبي عشان يُبنى
     if (widget.keys[index].currentContext == null &&
         widget.controller.hasClients &&
         widget.controller.position.hasContentDimensions) {
@@ -69,18 +67,18 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
       await Future.delayed(const Duration(milliseconds: 16));
     }
 
-    // 2) ثبّت العنصر عند بداية الشاشة
-    final ctx = widget.keys[index].currentContext;
-    if (ctx != null) {
-      try {
-        await Scrollable.ensureVisible(
-          ctx,
-          alignment: 0.0, // بداية (يسار) الـ ListView
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-        );
-      } catch (_) {}
-    }
+    if (!mounted) return;
+    final itemCtx = widget.keys[index].currentContext;
+    if (itemCtx == null || !itemCtx.mounted) return;
+
+    try {
+      await Scrollable.ensureVisible(
+        itemCtx,
+        alignment: 0.0,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    } catch (_) {}
   }
 
   @override
