@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "Flutter (lib\\presentation\\screens\\movie_details_screen.dart)",
+            "type": "dart",
+            "request": "launch",
+            "cwd": "shoof_iptv",
+            "program": "lib\\presentation\\screens\\movie_details_screen.dart"
+        }
+    ]
+}
