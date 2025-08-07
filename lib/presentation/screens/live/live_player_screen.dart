@@ -33,12 +33,8 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
   bool _hasError = false;
   bool _isDisposed = false;
 
-  final ValueNotifier<Duration> _positionNotifier = ValueNotifier(
-    Duration.zero,
-  );
   final ValueNotifier<int> _latencyNotifier = ValueNotifier(0);
 
-  Timer? _positionTimer;
   Timer? _retryTimer;
   Timer? _hideControlsTimer;
   Timer? _connectionCheckTimer;
@@ -77,7 +73,6 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
       if (_isDisposed) return;
       _startConnectionTracking();
       _toggleControls();
-      _startPositionTimer();
     });
   }
 
@@ -89,16 +84,6 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     } else if (state == AppLifecycleState.resumed) {
       _vlcController.play();
     }
-  }
-
-  void _startPositionTimer() {
-    _positionTimer?.cancel();
-    _positionTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (!mounted || _isDisposed) return;
-      final pos = await _vlcController.getPosition();
-      if (!mounted || _isDisposed) return;
-      _positionNotifier.value = pos;
-    });
   }
 
   Future<bool> _checkInternetConnection() async {
@@ -226,11 +211,9 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
   }
 
   @override
-  @override
   void dispose() {
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
-    _positionTimer?.cancel();
     _retryTimer?.cancel();
     _hideControlsTimer?.cancel();
     _connectionCheckTimer?.cancel();
@@ -238,7 +221,6 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     _vlcController.removeListener(_handlePlaybackState);
     _vlcController.stop();
     _vlcController.dispose();
-    _positionNotifier.dispose();
     _latencyNotifier.dispose();
 
     Future.delayed(Duration(milliseconds: 300), () {
@@ -286,7 +268,6 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () {
                         final navigator = Navigator.of(context);
-
                         SystemChrome.setPreferredOrientations([
                           DeviceOrientation.portraitUp,
                           DeviceOrientation.portraitDown,
@@ -297,12 +278,15 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
                         });
                       },
                     ),
-
-                    _signalIndicator(),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 40),
+                      child: _signalIndicator(),
+                    ),
                   ],
                 ),
               ),
             ),
+
           if (_showControls)
             Positioned(
               bottom: 20,
@@ -328,11 +312,11 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
                         size: 18,
                       ),
                       const SizedBox(width: 6),
-                      ValueListenableBuilder<Duration>(
-                        valueListenable: _positionNotifier,
-                        builder: (context, position, _) {
+                      ValueListenableBuilder<VlcPlayerValue>(
+                        valueListenable: _vlcController,
+                        builder: (context, value, _) {
                           return Text(
-                            _formatTime(position),
+                            _formatTime(value.position),
                             style: const TextStyle(color: Colors.white70),
                           );
                         },
