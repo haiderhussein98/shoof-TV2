@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-class LiveCategoriesBar extends StatelessWidget {
+class LiveCategoriesBar extends StatefulWidget {
   final List<Map<String, String>> categories;
   final ScrollController controller;
   final String? selectedCategoryId;
@@ -19,28 +20,93 @@ class LiveCategoriesBar extends StatelessWidget {
   });
 
   @override
+  State<LiveCategoriesBar> createState() => _LiveCategoriesBarState();
+}
+
+class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _scrollSelectedIntoView(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant LiveCategoriesBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedCategoryId != widget.selectedCategoryId ||
+        oldWidget.categories != widget.categories) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _scrollSelectedIntoView(),
+      );
+    }
+  }
+
+  Future<void> _scrollSelectedIntoView() async {
+    if (!mounted) return;
+    final selectedId = widget.selectedCategoryId;
+    if (selectedId == null) return;
+
+    final index = widget.categories.indexWhere((c) => c['id'] == selectedId);
+    if (index < 0 || index >= widget.keys.length) return;
+
+    // 1) لو مش مبني، اعمل تمرير تقريبي عشان يُبنى
+    if (widget.keys[index].currentContext == null &&
+        widget.controller.hasClients &&
+        widget.controller.position.hasContentDimensions) {
+      final total = (widget.categories.length - 1).clamp(1, 9999);
+      final fraction = index / total;
+      final target = widget.controller.position.maxScrollExtent * fraction;
+
+      try {
+        await widget.controller.animateTo(
+          target,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } catch (_) {}
+      await Future.delayed(const Duration(milliseconds: 16));
+    }
+
+    // 2) ثبّت العنصر عند بداية الشاشة
+    final ctx = widget.keys[index].currentContext;
+    if (ctx != null) {
+      try {
+        await Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.0, // بداية (يسار) الـ ListView
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      } catch (_) {}
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 45,
       child: ListView.builder(
-        controller: controller,
+        controller: widget.controller,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: categories.length,
+        cacheExtent: 1000, // يساعد يبني عناصر زيادة قدّام
+        itemCount: widget.categories.length,
         itemBuilder: (context, index) {
-          final cat = categories[index];
-          final isSelected = selectedCategoryId == cat['id'];
-          final count = countMap[cat['id']] ?? 0;
+          final cat = widget.categories[index];
+          final isSelected = widget.selectedCategoryId == cat['id'];
+          final count = widget.countMap[cat['id']] ?? 0;
 
           return Padding(
-            key: keys[index],
+            key: widget.keys[index],
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: ChoiceChip(
               label: Text(
                 '${cat['name']}${cat['id'] != 'all' ? ' ($count)' : ''}',
               ),
               selected: isSelected,
-              onSelected: (_) => onSelect(cat['id']!),
+              onSelected: (_) => widget.onSelect(cat['id']!),
               selectedColor: Colors.redAccent,
               backgroundColor: Colors.grey[800],
               labelStyle: TextStyle(
