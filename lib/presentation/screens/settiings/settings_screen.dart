@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_iptv/domain/providers/core_providers.dart';
+import 'package:shoof_iptv/presentation/screens/settiings/widgets/speed_test_card.dart';
 import 'package:shoof_iptv/presentation/screens/splash_screen.dart';
 import 'package:shoof_iptv/presentation/viewmodels/auth_provider.dart';
 import 'widgets/subscription_info_card.dart';
@@ -54,6 +55,10 @@ class SettingsScreen extends ConsumerWidget {
               endDate: formattedEnd,
               isTablet: isTablet,
             ),
+
+            const SizedBox(height: 20),
+            const SpeedTestCard(),
+
             const SizedBox(height: 30),
             ListTile(
               contentPadding: EdgeInsets.zero,

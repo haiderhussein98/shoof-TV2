@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dart_ping/dart_ping.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class LivePlayerScreen extends StatefulWidget {
   final String serverUrl;
@@ -38,6 +39,9 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
   Timer? _retryTimer;
   Timer? _hideControlsTimer;
   Timer? _connectionCheckTimer;
+  StreamSubscription<InternetStatus>? _connSub;
+  Timer? _recoveryTimer;
+  bool _isReopening = false;
 
   int _retryCount = 0;
   final int _maxRetryCount = 10;
@@ -72,6 +76,7 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     Future.microtask(() {
       if (_isDisposed) return;
       _startConnectionTracking();
+      _monitorInternet();
       _toggleControls();
     });
   }
@@ -82,8 +87,21 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     if (state == AppLifecycleState.paused) {
       _vlcController.pause();
     } else if (state == AppLifecycleState.resumed) {
-      _vlcController.play();
+      if (_vlcController.value.hasError || !_vlcController.value.isPlaying) {
+        _ensureRecovery();
+      } else {
+        _vlcController.play();
+      }
     }
+  }
+
+  void _monitorInternet() {
+    _connSub = InternetConnection().onStatusChange.listen((status) async {
+      if (_isDisposed) return;
+      if (status == InternetStatus.connected) {
+        _ensureRecovery();
+      }
+    });
   }
 
   Future<bool> _checkInternetConnection() async {
@@ -99,6 +117,10 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
   void _handlePlaybackState() {
     if (!mounted || _isDisposed) return;
     final state = _vlcController.value;
+
+    if (state.hasError) {
+      _ensureRecovery();
+    }
 
     if (_hasError != state.hasError) {
       if (!mounted || _isDisposed) return;
@@ -146,6 +168,60 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     if (_isPlaying != state.isPlaying) {
       if (!mounted || _isDisposed) return;
       setState(() => _isPlaying = state.isPlaying);
+    }
+  }
+
+  void _ensureRecovery() {
+    if (_isDisposed) return;
+    _recoveryTimer ??= Timer.periodic(const Duration(seconds: 3), (t) async {
+      if (_isDisposed) {
+        t.cancel();
+        _recoveryTimer = null;
+        return;
+      }
+      final online = await InternetConnection().hasInternetAccess;
+      if (!online) return;
+
+      final ok = await _reopenStream();
+      if (ok) {
+        t.cancel();
+        _recoveryTimer = null;
+      }
+    });
+  }
+
+  Future<bool> _reopenStream() async {
+    if (_isReopening || _isDisposed) return false;
+    _isReopening = true;
+    try {
+      try {
+        await _vlcController.stop();
+      } catch (_) {}
+
+      await _vlcController.setMediaFromNetwork(streamUrl, autoPlay: true);
+      _isReopening = false;
+      if (mounted) setState(() => _hasError = false);
+      return true;
+    } catch (_) {
+      try {
+        _vlcController.removeListener(_handlePlaybackState);
+        _vlcController.dispose();
+      } catch (_) {}
+
+      try {
+        _vlcController = VlcPlayerController.network(
+          streamUrl,
+          hwAcc: HwAcc.full,
+          autoPlay: true,
+        );
+        _vlcController.addListener(_handlePlaybackState);
+        _isReopening = false;
+        if (mounted) setState(() => _hasError = false);
+        return true;
+      } catch (_) {
+        _isReopening = false;
+        return false;
+      }
     }
   }
 
@@ -217,6 +293,8 @@ class _LivePlayerScreenState extends State<LivePlayerScreen>
     _retryTimer?.cancel();
     _hideControlsTimer?.cancel();
     _connectionCheckTimer?.cancel();
+    _connSub?.cancel();
+    _recoveryTimer?.cancel();
 
     _vlcController.removeListener(_handlePlaybackState);
     _vlcController.stop();

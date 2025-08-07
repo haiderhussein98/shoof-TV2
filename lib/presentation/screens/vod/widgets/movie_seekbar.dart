@@ -1,0 +1,56 @@
+import 'package:flutter/material.dart';
+
+class MovieSeekbar extends StatelessWidget {
+  final Duration position;
+  final Duration duration;
+  final String Function(Duration) formatTime;
+  final ValueChanged<int> onSeek;
+
+  const MovieSeekbar({
+    super.key,
+    required this.position,
+    required this.duration,
+    required this.formatTime,
+    required this.onSeek,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16),
+        child: Column(
+          children: [
+            Slider(
+              value: position.inSeconds.toDouble(),
+              max:
+                  (duration.inSeconds > 0
+                          ? duration.inSeconds
+                          : position.inSeconds + 1)
+                      .toDouble(),
+              onChanged: duration.inSeconds > 0
+                  ? (v) => onSeek(v.toInt())
+                  : null,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  formatTime(position),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                Text(
+                  duration.inSeconds > 0 ? formatTime(duration) : '--:--',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
