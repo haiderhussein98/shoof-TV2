@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/domain/providers/core_providers.dart';
-import 'package:shoof_iptv/presentation/screens/settiings/widgets/speed_test_card.dart';
-import 'package:shoof_iptv/presentation/screens/splash_screen.dart';
-import 'package:shoof_iptv/presentation/viewmodels/auth_provider.dart';
+import 'package:shoof_tv/domain/providers/core_providers.dart';
+import 'package:shoof_tv/presentation/screens/settiings/widgets/speed_test_card.dart';
+import 'package:shoof_tv/presentation/screens/splash_screen.dart';
+import 'package:shoof_tv/presentation/viewmodels/auth_provider.dart';
 import 'widgets/subscription_info_card.dart';
 import 'widgets/user_info_card.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/presentation/screens/series/viewmodel/series_viewmodel.dart';
+import 'package:shoof_tv/presentation/screens/series/viewmodel/series_viewmodel.dart';
 import '../../../data/models/series_model.dart';
 import 'widgets/series_app_bar.dart';
 import 'widgets/series_search_results_grid.dart';

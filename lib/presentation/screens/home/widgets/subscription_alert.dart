@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shoof_iptv/core/constants/colors.dart';
-import 'package:shoof_iptv/presentation/screens/home/viewmodel/home_viewmodel.dart';
+import 'package:shoof_tv/core/constants/colors.dart';
+import 'package:shoof_tv/presentation/screens/home/viewmodel/home_viewmodel.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SubscriptionAlert extends ConsumerWidget {

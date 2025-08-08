@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:shoof_iptv/core/constants/colors.dart';
-import 'package:shoof_iptv/data/models/series_model.dart';
-import 'package:shoof_iptv/data/services/series_service.dart';
-import 'package:shoof_iptv/domain/providers/series_providers.dart';
-import 'package:shoof_iptv/presentation/screens/series/series_player_screen.dart';
+import 'package:shoof_tv/core/constants/colors.dart';
+import 'package:shoof_tv/data/models/series_model.dart';
+import 'package:shoof_tv/data/services/series_service.dart';
+import 'package:shoof_tv/domain/providers/series_providers.dart';
+import 'package:shoof_tv/presentation/screens/series/series_player_screen.dart';
 
 import 'widgets/series_header_poster.dart';
 import 'widgets/series_meta_info.dart';
@@ -46,12 +46,43 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
     }
   }
 
-  void _playEpisode(BuildContext context, String videoUrl, String title) {
+  String _findContainerExt(
+    Map<String, List<Map<String, dynamic>>> data,
+    int episodeId,
+  ) {
+    for (final season in data.values) {
+      for (final ep in season) {
+        final id = int.tryParse(ep['id'].toString()) ?? -1;
+        if (id == episodeId) {
+          return (ep['container_extension'] ??
+                  ep['containerExtension'] ??
+                  'mkv')
+              .toString();
+        }
+      }
+    }
+    return 'mkv';
+  }
+
+  void _playEpisode({
+    required BuildContext context,
+    required int episodeId,
+    required String episodeName,
+    required String containerExtension,
+  }) {
     if (!mounted || _disposed) return;
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) =>
-            SeriesPlayerScreen(url: videoUrl, title: title),
+        pageBuilder: (_, __, ___) => SeriesPlayerScreen(
+          serverUrl: api.serverUrl,
+          username: api.username,
+          password: api.password,
+          episodeId: episodeId,
+          containerExtension: containerExtension.isNotEmpty
+              ? containerExtension
+              : 'mkv',
+          title: episodeName,
+        ),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
       ),
@@ -101,78 +132,122 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
 
           final episodesBySeason = snapshot.data!;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SeriesHeaderPoster(
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 900.0;
+              final posterWidth = isWide ? 320.0 : constraints.maxWidth;
+              final posterMaxHeight = isWide ? 480.0 : 220.0;
+
+              final poster = ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: posterWidth,
+                  maxHeight: posterMaxHeight,
+                ),
+                child: SeriesHeaderPoster(
                   heroTag: 'series_${series.seriesId}',
                   coverUrl: series.cover,
                   onPlayFirst: () {
                     if (!mounted || _disposed) return;
+
                     final firstSeason = episodesBySeason.entries.first;
                     final firstEpisode = firstSeason.value.first;
-                    final videoUrl = series.getEpisodeUrl(
-                      api.serverUrl,
-                      api.username,
-                      api.password,
-                      int.tryParse(firstEpisode['id'].toString()) ?? 0,
-                    );
+
+                    final id = int.tryParse(firstEpisode['id'].toString()) ?? 0;
+                    final name = (firstEpisode['title'] ?? '').toString();
+                    final ext =
+                        (firstEpisode['container_extension'] ??
+                                firstEpisode['containerExtension'] ??
+                                '')
+                            .toString();
+
                     _playEpisode(
-                      context,
-                      videoUrl,
-                      firstEpisode['title'] ?? '',
+                      context: context,
+                      episodeId: id,
+                      episodeName: name,
+                      containerExtension: ext,
                     );
                   },
                 ),
-                const SizedBox(height: 20),
+              );
 
-                Text(
-                  series.name,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              final titleAndMeta = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    series.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: isWide ? 28 : 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-
-                SeriesMetaInfo(
-                  releaseDateText: series.releaseDate == null
-                      ? null
-                      : formatDate(series.releaseDate!),
-                  genreText: series.genre,
-                  directorText: series.director,
-                  castText: series.cast,
-                  ratingText: series.rating,
-                ),
-
-                if (series.plot?.isNotEmpty ?? false) ...[
-                  const SizedBox(height: 16),
-                  const SeriesOverviewTitle(),
-                  const SizedBox(height: 4),
-                  SeriesOverviewText(text: series.plot!),
+                  const SizedBox(height: 10),
+                  SeriesMetaInfo(
+                    releaseDateText: series.releaseDate == null
+                        ? null
+                        : formatDate(series.releaseDate!),
+                    genreText: series.genre,
+                    directorText: series.director,
+                    castText: series.cast,
+                    ratingText: series.rating,
+                  ),
+                  if (series.plot?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 16),
+                    const SeriesOverviewTitle(),
+                    const SizedBox(height: 4),
+                    SeriesOverviewText(
+                      series: series,
+                      maxLines: isWide ? 6 : 5,
+                    ),
+                  ],
                 ],
+              );
 
-                const SizedBox(height: 30),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          poster,
+                          const SizedBox(width: 24),
+                          Expanded(child: titleAndMeta),
+                        ],
+                      )
+                    else ...[
+                      Center(child: poster),
+                      const SizedBox(height: 16),
+                      titleAndMeta,
+                    ],
 
-                SeasonExpansionList(
-                  episodesBySeason: episodesBySeason,
-                  titleColor: AppColors.primaryRed,
-                  onPlayEpisode: (episodeId, episodeName) {
-                    if (!mounted || _disposed) return;
-                    final videoUrl = series.getEpisodeUrl(
-                      api.serverUrl,
-                      api.username,
-                      api.password,
-                      int.tryParse(episodeId.toString()) ?? 0,
-                    );
-                    _playEpisode(context, videoUrl, episodeName);
-                  },
+                    const SizedBox(height: 28),
+
+                    SeasonExpansionList(
+                      episodesBySeason: episodesBySeason,
+                      titleColor: AppColors.primaryRed,
+                      onPlayEpisode: (episodeId, episodeName) {
+                        if (!mounted || _disposed) return;
+
+                        final id = int.tryParse(episodeId.toString()) ?? 0;
+                        final ext = _findContainerExt(episodesBySeason, id);
+
+                        _playEpisode(
+                          context: context,
+                          episodeId: id,
+                          episodeName: episodeName,
+                          containerExtension: ext,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),

@@ -89,7 +89,7 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
         controller: widget.controller,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        cacheExtent: 1000, // يساعد يبني عناصر زيادة قدّام
+        cacheExtent: 1000,
         itemCount: widget.categories.length,
         itemBuilder: (context, index) {
           final cat = widget.categories[index];

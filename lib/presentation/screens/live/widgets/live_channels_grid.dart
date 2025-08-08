@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shoof_iptv/data/models/channel_model.dart';
-import 'package:shoof_iptv/presentation/screens/live/widgets/channel_tile.dart';
+import 'package:shoof_tv/data/models/channel_model.dart';
+import 'package:shoof_tv/presentation/screens/live/widgets/channel_tile.dart';
 
 class LiveChannelsGrid extends StatelessWidget {
   final List<ChannelModel> channels;

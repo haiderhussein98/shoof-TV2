@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/domain/providers/live_providers.dart';
+import 'package:shoof_tv/domain/providers/live_providers.dart';
 import '../../../../data/models/channel_model.dart';
 import '../state/live_state.dart';
 

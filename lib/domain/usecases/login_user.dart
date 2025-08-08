@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:shoof_iptv/domain/providers/core_providers.dart';
-import 'package:shoof_iptv/domain/providers/user_providers.dart';
+import 'package:shoof_tv/domain/providers/core_providers.dart';
+import 'package:shoof_tv/domain/providers/user_providers.dart';
 import '../../presentation/viewmodels/auth_provider.dart';
 
 Future<bool> loginUser({

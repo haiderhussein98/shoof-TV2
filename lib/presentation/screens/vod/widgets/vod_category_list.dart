@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shoof_iptv/presentation/screens/vod/widgets/category_section.dart';
+import 'package:shoof_tv/presentation/screens/vod/widgets/category_section.dart';
 
 class VodCategoryList extends StatefulWidget {
   final Future<List<Map<String, String>>> categoriesFuture;

@@ -1,17 +1,45 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/core/theme/app_theme.dart';
-import 'package:shoof_iptv/data/services/cleanup_service.dart';
-import 'package:shoof_iptv/presentation/screens/splash_screen.dart';
 
-void main() async {
+import 'package:shoof_tv/core/theme/app_theme.dart';
+import 'package:shoof_tv/data/services/cleanup_service.dart';
+import 'package:shoof_tv/presentation/screens/splash_screen.dart';
+
+import 'package:media_kit/media_kit.dart' as mk;
+import 'package:window_manager/window_manager.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
 
+  final bool isDesktop =
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux ||
+          defaultTargetPlatform == TargetPlatform.macOS);
+
+  if (isDesktop) {
+    mk.MediaKit.ensureInitialized();
+
+    await windowManager.ensureInitialized();
+    const windowOptions = WindowOptions(
+      minimumSize: Size(1100, 700),
+      center: true,
+      titleBarStyle: TitleBarStyle.normal,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  } else {
+    // ✅ فقط على الموبايل: تثبيت الاتجاه عمودي
+    await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
   runApp(const ProviderScope(child: ShoofIPTVApp()));
 }
 

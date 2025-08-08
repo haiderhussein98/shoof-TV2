@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shoof_iptv/core/constants/colors.dart';
+import 'package:shoof_tv/core/constants/colors.dart';
 
 class SeriesMetaInfo extends StatelessWidget {
   final String? releaseDateText;

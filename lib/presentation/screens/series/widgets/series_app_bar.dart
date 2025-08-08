@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shoof_tv/presentation/widgets/app_search_field.dart';
 
 class SeriesAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController searchController;
@@ -14,8 +15,16 @@ class SeriesAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onSearch,
   });
 
+  bool _isRTL(BuildContext context) {
+    final code = Localizations.localeOf(context).languageCode.toLowerCase();
+    return const {'ar', 'fa', 'ur', 'he'}.contains(code) ||
+        Directionality.of(context) == TextDirection.rtl;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isRtl = _isRTL(context);
+
     return AppBar(
       backgroundColor: Colors.black,
       title: const Text("Series", style: TextStyle(fontSize: 15)),
@@ -29,28 +38,30 @@ class SeriesAppBar extends StatelessWidget implements PreferredSizeWidget {
         preferredSize: const Size.fromHeight(50),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-          child: TextField(
-            textDirection: TextDirection.rtl,
-            controller: searchController,
-            onSubmitted: onSearch,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'ابحث عن مسلسل...',
-              hintStyle: const TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.grey[900],
-              prefixIcon: const Icon(Icons.search, color: Colors.white54),
-              suffixIcon: isSearching
-                  ? IconButton(
+          child: SizedBox(
+            height: 50,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                AppSearchField(
+                  controller: searchController,
+                  hintAr: 'ابحث عن مسلسل...',
+                  hintEn: 'Search series...',
+                  padding: EdgeInsets.zero,
+                  onSubmitted: onSearch,
+                ),
+
+                if (isSearching)
+                  Positioned(
+                    right: isRtl ? null : 6,
+                    left: isRtl ? 6 : null,
+                    child: IconButton(
                       icon: const Icon(Icons.clear, color: Colors.white54),
                       onPressed: onClear,
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      tooltip: isRtl ? 'مسح' : 'Clear',
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

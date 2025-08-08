@@ -1,4 +1,4 @@
-name: shoof_iptv
+name: shoof_tv 
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -51,6 +51,14 @@ dependencies:
   path_provider: ^2.1.5
   google_fonts: ^6.3.0
   internet_connection_checker_plus: ^2.7.2
+  media_kit: ^1.1.10
+
+  media_kit_video: ^1.3.0
+  media_kit_libs_windows_video: ^1.0.4 
+  window_manager: ^0.5.1
+  msix: ^3.16.7
+
+  
  
  
 
@@ -111,12 +119,34 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
+  windows:
+    generate: true
+    icon_size: 48
+  macos:
+    generate: true
   image_path: "assets/images/shoofimageapp.png"
+
 
 flutter_native_splash:
   android: true
+  windows: true
+
   ios: true
   color: "#1D1F2F"
   background_image: assets/images/shoofimageapp.png
 
+msix_config:
+  display_name: Shoof TV
+  publisher_display_name: Shoof
+  identity_name: com.shoof.tv
+  msix_version: 1.0.0.7
+  logo_path: assets/images/logo.png
+  start_menu: true
+  desktop_icon: true
+
+  capabilities: "internetClient, privateNetworkClientServer"
+
+  publisher: CN=ShoofTV
+  certificate_path: windows/runner/shoof.pfx   
+  certificate_password: "123456"
 

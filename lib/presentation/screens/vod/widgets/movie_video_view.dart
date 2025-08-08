@@ -14,15 +14,48 @@ class MovieVideoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: aspectRatio,
-          child: VlcPlayer(
-            controller: controller,
-            aspectRatio: aspectRatio,
-            placeholder: const Center(child: CircularProgressIndicator()),
-          ),
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxW = constraints.maxWidth;
+          final maxH = constraints.maxHeight;
+
+          // لو الـ aspectRatio غير صالح، اعرضه كما هو لملء المساحة
+          if (aspectRatio <= 0 || aspectRatio.isNaN) {
+            return VlcPlayer(
+              controller: controller,
+              aspectRatio: maxW / maxH,
+              placeholder: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          final containerAR = maxW / maxH;
+          final videoAR = aspectRatio;
+
+          double childW, childH;
+
+          if (videoAR >= containerAR) {
+            childH = maxH;
+            childW = childH * videoAR;
+          } else {
+            childW = maxW;
+            childH = childW / videoAR;
+          }
+
+          return ClipRect(
+            child: Align(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: childW,
+                height: childH,
+                child: VlcPlayer(
+                  controller: controller,
+                  aspectRatio: videoAR,
+                  placeholder: const Center(child: CircularProgressIndicator()),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
-import 'package:shoof_iptv/presentation/screens/vod/movie_details_screen.dart';
-import 'package:shoof_iptv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/presentation/screens/vod/movie_details_screen.dart';
+import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 
 class MovieItemWidget extends ConsumerStatefulWidget {
   final MovieModel movie;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shoof_iptv/domain/providers/series_providers.dart';
+import 'package:shoof_tv/domain/providers/series_providers.dart';
 import '../../../../data/models/series_model.dart';
 import '../series_details_screen.dart';
 import '../category_series_screen.dart';

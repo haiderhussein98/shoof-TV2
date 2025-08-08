@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shoof_iptv/domain/providers/core_providers.dart';
-import 'package:shoof_iptv/domain/providers/user_providers.dart';
-import 'package:shoof_iptv/presentation/screens/live/viewmodel/live_viewmodel.dart';
-import 'package:shoof_iptv/presentation/screens/series/viewmodel/series_viewmodel.dart';
-import 'package:shoof_iptv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
+import 'package:shoof_tv/domain/providers/core_providers.dart';
+import 'package:shoof_tv/domain/providers/user_providers.dart';
+import 'package:shoof_tv/presentation/screens/live/viewmodel/live_viewmodel.dart';
+import 'package:shoof_tv/presentation/screens/series/viewmodel/series_viewmodel.dart';
+import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<bool>>(
   (ref) => AuthNotifier(ref),

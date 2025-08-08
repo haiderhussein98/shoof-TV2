@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
-import 'package:shoof_iptv/domain/providers/vod_providers.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import 'movie_details_screen.dart';
 
 class CategoryMoviesScreen extends ConsumerStatefulWidget {

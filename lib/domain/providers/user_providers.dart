@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/presentation/viewmodels/auth_provider.dart';
+import 'package:shoof_tv/presentation/viewmodels/auth_provider.dart';
 import '../../data/services/user_service.dart';
 import 'core_providers.dart';
 

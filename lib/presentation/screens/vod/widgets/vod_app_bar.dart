@@ -16,6 +16,13 @@ class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isRTL(BuildContext context) {
+      final code = Localizations.localeOf(context).languageCode.toLowerCase();
+      return const {'ar', 'fa', 'ur', 'he'}.contains(code) ||
+          Directionality.of(context) == TextDirection.rtl;
+    }
+
+    final isRtl = isRTL(context);
     return AppBar(
       backgroundColor: Colors.black,
       title: const Text("Movies", style: TextStyle(fontSize: 15)),
@@ -29,28 +36,49 @@ class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
         preferredSize: const Size.fromHeight(50),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-          child: TextField(
-            textDirection: TextDirection.rtl,
-            controller: controller,
-            onSubmitted: onSearch,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'ابحث عن فيلم...',
-              hintStyle: const TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.grey[900],
-              prefixIcon: const Icon(Icons.search, color: Colors.white54),
-              suffixIcon: isSearching
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: Colors.white54),
-                      onPressed: onClear,
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
+          child: Directionality(
+            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+            child: TextField(
+              controller: controller,
+              onSubmitted: onSearch,
+              style: const TextStyle(color: Colors.white),
+              cursorColor: Colors.white70,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: isRtl ? 'ابحث عن فيلم...' : 'Search movies...',
+                hintStyle: const TextStyle(color: Colors.white60),
+                filled: true,
+                fillColor: const Color(0xFF1E1F25),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
+                prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                suffixIcon: isSearching
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.white54),
+                        onPressed: onClear,
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: Color(0x22FFFFFF),
+                    width: 1,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: Color(0x44FFFFFF),
+                    width: 1,
+                  ),
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0),
             ),
           ),
         ),

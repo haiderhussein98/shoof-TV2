@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shoof_iptv/data/models/series_model.dart';
+import 'package:shoof_tv/data/models/series_model.dart';
 
 class SeriesService {
   final String serverUrl;

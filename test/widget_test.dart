@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/main.dart';
-import 'package:shoof_iptv/presentation/screens/splash_screen.dart';
+import 'package:shoof_tv/main.dart';
+import 'package:shoof_tv/presentation/screens/splash_screen.dart';
 
 void main() {
   testWidgets('Shoof IPTV loads SplashScreen initially', (

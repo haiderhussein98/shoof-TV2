@@ -1,11 +1,10 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
-import 'package:shoof_iptv/domain/providers/vod_providers.dart';
-import 'package:shoof_iptv/presentation/screens/vod/category_movies_screen.dart';
-import 'package:shoof_iptv/presentation/screens/vod/movie_details_screen.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/domain/providers/vod_providers.dart';
+import 'package:shoof_tv/presentation/screens/vod/category_movies_screen.dart';
+import 'package:shoof_tv/presentation/screens/vod/movie_details_screen.dart';
 
 class CategorySection extends ConsumerWidget {
   final String categoryId;

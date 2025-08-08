@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/domain/providers/vod_providers.dart';
+import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import '../../../../data/models/movie_model.dart.dart';
 
 final vodViewModelProvider = ChangeNotifierProvider<VodViewModel>((ref) {

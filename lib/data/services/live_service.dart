@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:shoof_iptv/data/models/channel_model.dart';
+import 'package:shoof_tv/data/models/channel_model.dart';
 
 class LiveService {
   final String serverUrl;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
 
 class RelatedMoviesList extends StatelessWidget {
   final Future<List<MovieModel>> future;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/domain/providers/core_providers.dart';
+import 'package:shoof_tv/domain/providers/core_providers.dart';
 
 class UserInfoCard extends ConsumerWidget {
   final String username;

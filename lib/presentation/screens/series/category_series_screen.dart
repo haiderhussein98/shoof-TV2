@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shoof_iptv/domain/providers/series_providers.dart';
+import 'package:shoof_tv/domain/providers/series_providers.dart';
 import '../../../data/models/series_model.dart';
 import 'series_details_screen.dart';
 
@@ -98,6 +98,11 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
       return 3;
     }
 
+    final isRtl =
+        const {'ar', 'fa', 'ur', 'he'}.contains(
+          Localizations.localeOf(context).languageCode.toLowerCase(),
+        ) ||
+        Directionality.of(context) == TextDirection.rtl;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.categoryName, style: const TextStyle(fontSize: 12)),
@@ -115,21 +120,24 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (val) => _searchQuery.value = val,
-                decoration: InputDecoration(
-                  hintText: 'Search series...',
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.grey[850],
-                  prefixIcon: const Icon(Icons.search, color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              child: Directionality(
+                textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => _searchQuery.value = val,
+                  decoration: InputDecoration(
+                    hintText: isRtl ? 'ابحث عن مسلسل...' : 'Search series...',
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: Colors.grey[850],
+                    prefixIcon: const Icon(Icons.search, color: Colors.white),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
+                  style: const TextStyle(color: Colors.white),
                 ),
-                style: const TextStyle(color: Colors.white),
               ),
             ),
             Expanded(

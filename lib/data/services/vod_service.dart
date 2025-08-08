@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
 
 class VodService {
   final String serverUrl;

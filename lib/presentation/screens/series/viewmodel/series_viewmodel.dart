@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/data/services/series_service.dart';
-import 'package:shoof_iptv/domain/providers/series_providers.dart';
+import 'package:shoof_tv/data/services/series_service.dart';
+import 'package:shoof_tv/domain/providers/series_providers.dart';
 import '../../../../data/models/series_model.dart';
 
 final seriesViewModelProvider = Provider<SeriesViewModel>((ref) {

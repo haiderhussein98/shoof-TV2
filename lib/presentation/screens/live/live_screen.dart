@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/domain/providers/live_providers.dart';
-import 'package:shoof_iptv/presentation/screens/live/live_player_screen.dart';
-import 'package:shoof_iptv/presentation/screens/live/viewmodel/live_viewmodel.dart';
-import 'package:shoof_iptv/data/models/channel_model.dart';
+import 'package:shoof_tv/domain/providers/live_providers.dart';
+import 'package:shoof_tv/presentation/screens/live/live_player_screen.dart';
+import 'package:shoof_tv/presentation/screens/live/viewmodel/live_viewmodel.dart';
+import 'package:shoof_tv/data/models/channel_model.dart';
 import 'widgets/live_app_bar.dart';
 import 'widgets/live_search_bar.dart';
 import 'widgets/live_categories_bar.dart';

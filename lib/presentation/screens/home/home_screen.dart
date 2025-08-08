@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shoof_iptv/domain/providers/core_providers.dart';
-import 'package:shoof_iptv/presentation/screens/home/viewmodel/home_viewmodel.dart';
-import 'package:shoof_iptv/presentation/screens/home/widgets/custom_navigation_bar.dart';
-import 'package:shoof_iptv/presentation/screens/home/widgets/custom_navigation_rail.dart';
-import 'package:shoof_iptv/presentation/screens/home/widgets/subscription_alert.dart';
-import 'package:shoof_iptv/presentation/viewmodels/auth_provider.dart';
+import 'package:shoof_tv/domain/providers/core_providers.dart';
+import 'package:shoof_tv/presentation/screens/home/viewmodel/home_viewmodel.dart';
+import 'package:shoof_tv/presentation/screens/home/widgets/custom_navigation_bar.dart';
+import 'package:shoof_tv/presentation/screens/home/widgets/custom_navigation_rail.dart';
+import 'package:shoof_tv/presentation/screens/home/widgets/subscription_alert.dart';
+import 'package:shoof_tv/presentation/viewmodels/auth_provider.dart';
 
 import '../live/live_screen.dart';
 import '../vod/vod_screen.dart';
@@ -76,6 +76,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showAlert = ref.watch(showSubscriptionAlertProvider);
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: SizedBox.expand(
         child: Stack(
           children: [
@@ -83,7 +84,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (isWide) const CustomNavigationRail(),
-                Expanded(child: screens[index]),
+                const VerticalDivider(
+                  width: 1,
+                  thickness: 1,
+                  color: Colors.white12,
+                ),
+                Expanded(
+                  child: SafeArea(
+                    top: true,
+                    bottom: false,
+                    child: screens[index],
+                  ),
+                ),
               ],
             ),
             if (showAlert) const SubscriptionAlert(),

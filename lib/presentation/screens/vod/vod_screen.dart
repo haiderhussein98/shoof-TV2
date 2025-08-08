@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_iptv/data/models/movie_model.dart.dart';
-import 'package:shoof_iptv/domain/providers/vod_providers.dart';
-import 'package:shoof_iptv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
-import 'package:shoof_iptv/presentation/screens/vod/widgets/vod_app_bar.dart';
-import 'package:shoof_iptv/presentation/screens/vod/widgets/vod_search_results_grid.dart';
-import 'package:shoof_iptv/presentation/screens/vod/widgets/vod_category_list.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/domain/providers/vod_providers.dart';
+import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
+import 'package:shoof_tv/presentation/screens/vod/widgets/vod_app_bar.dart';
+import 'package:shoof_tv/presentation/screens/vod/widgets/vod_search_results_grid.dart';
+import 'package:shoof_tv/presentation/screens/vod/widgets/vod_category_list.dart';
 
 class VodScreen extends ConsumerStatefulWidget {
   const VodScreen({super.key});

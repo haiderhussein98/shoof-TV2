@@ -19,7 +19,7 @@ class ChannelModel {
     required this.serverUrl,
     required this.username,
     required this.password,
-    required this.categoryId, // ✅ أضف هذا السطر
+    required this.categoryId,
   });
 
   factory ChannelModel.fromJson(
