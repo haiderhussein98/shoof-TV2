@@ -35,7 +35,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
   bool _isReopening = false;
 
   bool _showBlockingLoader = false;
-
   double? _lockedAspectRatio;
 
   String get _resumeKey => 'movie_resume_${widget.url}';
@@ -44,9 +43,12 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
   void initState() {
     super.initState();
     _createController();
-    _startTracking();
-    _restoreLastPositionAndPlay();
-    _monitorConnection();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      _startTracking();
+      _restoreLastPositionAndPlay();
+      _monitorConnection();
+    });
   }
 
   void _createController() {
@@ -74,7 +76,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
   void _updateState() {
     if (_isDisposed) return;
     final v = _vlcController.value;
-
     if (v.size.width > 0 && v.size.height > 0) {
       final ar = v.size.width / v.size.height;
       if (_lockedAspectRatio == null ||
@@ -82,7 +83,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
         setState(() => _lockedAspectRatio = ar);
       }
     }
-
     if (mounted) setState(() => _isPlaying = v.isPlaying);
     if (v.hasError) _ensureRecovery();
   }
@@ -110,7 +110,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
     try {
       await _vlcController.setMediaFromNetwork(widget.url, autoPlay: false);
     } catch (_) {}
-
     try {
       await _vlcController.play();
     } catch (_) {}
@@ -181,7 +180,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
       } catch (_) {}
 
       await _vlcController.setMediaFromNetwork(widget.url, autoPlay: false);
-
       try {
         await _vlcController.play();
       } catch (_) {}
@@ -319,7 +317,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
   void dispose() {
     _isDisposed = true;
     _saveLastPosition();
-
     _timer?.cancel();
     _hideTimer?.cancel();
     _connectionSub?.cancel();
@@ -329,13 +326,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
       _vlcController.stop();
     } catch (_) {}
     _vlcController.dispose();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    });
     super.dispose();
   }
 
@@ -345,12 +335,8 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
 
     return PopScope(
       canPop: true,
-      onPopInvokedWithResult: (didpop, result) async {
-        if (!didpop) {
-          await _saveLastPosition();
-        } else {
-          await _saveLastPosition();
-        }
+      onPopInvokedWithResult: (didPop, _) async {
+        await _saveLastPosition();
       },
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -364,26 +350,25 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
                 aspectRatio:
                     _lockedAspectRatio ?? (screen.width / screen.height),
               ),
-
               MovieLoadingOverlay(
                 controller: _vlcController,
                 showBlockingLoader: _showBlockingLoader,
                 isReopening: _isReopening,
               ),
-
               if (_showControls)
                 MovieTopControls(
-                  onBack: () async {
+                  onBack: () {
                     final navigator = Navigator.of(context);
 
-                    await _saveLastPosition();
-
-                    if (!mounted) return;
-                    navigator.pop();
+                    () async {
+                      await _saveLastPosition();
+                      if (!mounted || !navigator.mounted) return;
+                      navigator.pop();
+                    }();
                   },
+
                   onRotate: _toggleOrientation,
                 ),
-
               if (_showControls)
                 MovieCenterControls(
                   isPlaying: _isPlaying,
@@ -398,7 +383,6 @@ class _MoviePlayerMobileState extends State<MoviePlayerMobile> {
                   },
                   onForward10: () => _seekBy(10),
                 ),
-
               if (_showControls)
                 MovieSeekbar(
                   position: _position,

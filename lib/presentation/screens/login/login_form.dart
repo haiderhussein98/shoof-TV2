@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/usecases/login_user.dart';
 import 'package:shoof_tv/presentation/screens/home/home_screen.dart';
@@ -146,23 +147,152 @@ Widget _buildTextField({
   TextInputAction? textInputAction,
   Function(String)? onSubmitted,
 }) {
-  return TextField(
+  return _TvTextField(
     controller: controller,
+    hint: hint,
     obscureText: obscureText,
     focusNode: focusNode,
     textInputAction: textInputAction,
     onSubmitted: onSubmitted,
-    style: const TextStyle(color: Colors.white),
-    decoration: InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white38),
-      filled: true,
-      fillColor: Colors.white12,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-    ),
   );
+}
+
+class _TvTextField extends StatefulWidget {
+  final TextEditingController controller;
+  final String hint;
+  final bool obscureText;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final Function(String)? onSubmitted;
+
+  const _TvTextField({
+    required this.controller,
+    required this.hint,
+    required this.obscureText,
+    this.focusNode,
+    this.textInputAction,
+    this.onSubmitted,
+  });
+
+  @override
+  State<_TvTextField> createState() => _TvTextFieldState();
+}
+
+class _TvTextFieldState extends State<_TvTextField> {
+  final FocusNode _wrapperNode = FocusNode(debugLabel: 'login_field_wrapper');
+  late final FocusNode _textNode = widget.focusNode ?? FocusNode();
+
+  bool _editing = false;
+
+  @override
+  void dispose() {
+    _wrapperNode.dispose();
+    if (widget.focusNode == null) {
+      _textNode.dispose();
+    }
+    super.dispose();
+  }
+
+  void _startEditing() {
+    if (_editing) return;
+    setState(() => _editing = true);
+    _textNode.requestFocus();
+    Future.microtask(() {
+      SystemChannels.textInput.invokeMethod('TextInput.show');
+    });
+  }
+
+  void _stopEditing() {
+    if (!_editing) return;
+    setState(() => _editing = false);
+    _textNode.unfocus();
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.select ||
+        key == LogicalKeyboardKey.numpadEnter ||
+        key == LogicalKeyboardKey.space) {
+      _startEditing();
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
+      _stopEditing();
+      return KeyEventResult.handled;
+    }
+
+    // التنقّل بالأسهم عندما لا نكون في وضع الكتابة
+    if (!_editing) {
+      final scope = FocusScope.of(context);
+      if (key == LogicalKeyboardKey.arrowDown) {
+        scope.focusInDirection(TraversalDirection.down);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowUp) {
+        scope.focusInDirection(TraversalDirection.up);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowLeft) {
+        scope.focusInDirection(TraversalDirection.left);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowRight) {
+        scope.focusInDirection(TraversalDirection.right);
+        return KeyEventResult.handled;
+      }
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Focus(
+      focusNode: _wrapperNode,
+      onKeyEvent: _handleKey,
+      child: TextField(
+        controller: widget.controller,
+        focusNode: _textNode,
+        obscureText: widget.obscureText,
+        readOnly: !_editing,
+        textInputAction: widget.textInputAction,
+        onTap: _startEditing,
+        onSubmitted: (v) {
+          widget.onSubmitted?.call(v);
+          _stopEditing();
+        },
+        onEditingComplete: _stopEditing,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: const TextStyle(color: Colors.white38),
+          filled: true,
+          fillColor: Colors.white12,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: _wrapperNode.hasFocus
+                  ? Colors.redAccent
+                  : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+          ),
+        ),
+      ),
+    );
+  }
 }

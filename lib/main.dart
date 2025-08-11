@@ -3,16 +3,30 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shoof_tv/core/theme/app_theme.dart';
 import 'package:shoof_tv/data/services/cleanup_service.dart';
 import 'package:shoof_tv/presentation/screens/splash_screen.dart';
-
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:window_manager/window_manager.dart';
 
+Future<bool> _isAndroidTV() async {
+  if (kIsWeb) return false;
+  if (defaultTargetPlatform != TargetPlatform.android) return false;
+  final info = await DeviceInfoPlugin().androidInfo;
+  final features = info.systemFeatures;
+  final model = (info.model).toLowerCase();
+  final brand = (info.brand).toLowerCase();
+  if (features.contains('android.software.leanback')) return true;
+  if (features.contains('android.software.television')) return true;
+  if (model.contains('tv') || brand.contains('tv')) return true;
+  return false;
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PaintingBinding.instance.imageCache.maximumSize = 100; // عدد الصور
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20; // ~60MB
 
   final bool isDesktop =
       !kIsWeb &&
@@ -22,7 +36,6 @@ Future<void> main() async {
 
   if (isDesktop) {
     mk.MediaKit.ensureInitialized();
-
     await windowManager.ensureInitialized();
     const windowOptions = WindowOptions(
       minimumSize: Size(1100, 700),
@@ -34,12 +47,17 @@ Future<void> main() async {
       await windowManager.focus();
     });
   } else {
-    // ✅ فقط على الموبايل: تثبيت الاتجاه عمودي
-    await SystemChrome.setPreferredOrientations(const [
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    final tv = await _isAndroidTV();
+    if (!tv) {
+      await SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    }
   }
+
   runApp(const ProviderScope(child: ShoofIPTVApp()));
 }
 

@@ -7,6 +7,8 @@ class AppSearchField extends StatelessWidget {
   final String hintAr;
   final String hintEn;
   final EdgeInsets padding;
+  final FocusNode? focusNode;
+  final bool readOnly;
 
   const AppSearchField({
     super.key,
@@ -16,6 +18,8 @@ class AppSearchField extends StatelessWidget {
     this.hintAr = 'ابحث...',
     this.hintEn = 'Search...',
     this.padding = const EdgeInsets.all(12),
+    this.focusNode,
+    this.readOnly = false,
   });
 
   bool _isRTL(BuildContext context) {
@@ -35,6 +39,8 @@ class AppSearchField extends StatelessWidget {
         textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
         child: TextField(
           controller: controller,
+          focusNode: focusNode,
+          readOnly: readOnly,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
           style: const TextStyle(color: Colors.white),

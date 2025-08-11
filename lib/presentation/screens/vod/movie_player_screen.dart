@@ -1,9 +1,8 @@
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-
-import 'widgets/movie_player_mobile.dart';
-import 'widgets/movie_player_desktop.dart';
+import 'package:shoof_tv/presentation/widgets/universal_player_desktop.dart';
+import 'package:shoof_tv/presentation/widgets/universal_player_mobile.dart';
 
 class MoviePlayerScreen extends StatelessWidget {
   final String url;
@@ -20,16 +19,14 @@ class MoviePlayerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (_isDesktop) {
-            return MoviePlayerDesktop(url: url, title: title);
-          } else {
-            return MoviePlayerMobile(url: url, title: title);
-          }
-        },
-      ),
+      body: _isDesktop
+          ? UniversalPlayerDesktop.movie(title: title, movieUrl: url)
+          : UniversalPlayerMobile(
+              type: ContentType.movie,
+              title: title,
+              url: url,
+              logo: Image.asset('assets/images/logo.png', width: 40),
+            ),
     );
   }
 }

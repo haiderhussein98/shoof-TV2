@@ -8,6 +8,7 @@ import 'widgets/live_app_bar.dart';
 import 'widgets/live_search_bar.dart';
 import 'widgets/live_categories_bar.dart';
 import 'widgets/live_channels_grid.dart';
+import 'package:shoof_tv/core/responsive.dart';
 
 class LiveScreen extends ConsumerStatefulWidget {
   const LiveScreen({super.key});
@@ -44,7 +45,7 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
     }
   }
 
-  void _fetchChannels(String categoryId) async {
+  Future<void> _fetchChannels(String categoryId) async {
     await ref
         .read(liveViewModelProvider.notifier)
         .fetchChannelsByCategory(categoryId);
@@ -55,12 +56,12 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         .indexWhere((cat) => cat['id'] == categoryId);
     if (index != -1 && _categoryKeys.length > index) {
       final key = _categoryKeys[index];
-      final context = key.currentContext;
-      if (context != null && mounted) {
+      final ctx = key.currentContext;
+      if (ctx != null && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && context.mounted) {
+          if (mounted && ctx.mounted) {
             Scrollable.ensureVisible(
-              context,
+              ctx,
               duration: const Duration(milliseconds: 400),
               alignment: 0.5,
               curve: Curves.easeInOut,
@@ -119,30 +120,35 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
           ? const Center(child: CircularProgressIndicator())
           : GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
-              child: Column(
-                children: [
-                  LiveSearchBar(
-                    controller: _searchController,
-                    searchQuery: _searchQuery,
-                  ),
-                  if (state.categories.isNotEmpty)
-                    LiveCategoriesBar(
-                      categories: state.categories,
-                      controller: _categoryScrollController,
-                      selectedCategoryId: state.selectedCategoryId,
-                      keys: _categoryKeys,
-                      countMap: state.channelCountByCategory,
-                      onSelect: _fetchChannels,
+              child: Padding(
+                padding: context.pagePadding,
+                child: Column(
+                  children: [
+                    LiveSearchBar(
+                      controller: _searchController,
+                      searchQuery: _searchQuery,
                     ),
-                  const SizedBox(height: 10),
-                  LiveChannelsGrid(
-                    channels: state.allChannels,
-                    scrollController: _scrollController,
-                    bottomInset: bottomInset,
-                    searchQuery: _searchQuery,
-                    onTap: _navigateToPlayer,
-                  ),
-                ],
+                    if (state.categories.isNotEmpty)
+                      LiveCategoriesBar(
+                        categories: state.categories,
+                        controller: _categoryScrollController,
+                        selectedCategoryId: state.selectedCategoryId,
+                        keys: _categoryKeys,
+                        countMap: state.channelCountByCategory,
+                        onSelect: _fetchChannels,
+                      ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: LiveChannelsGrid(
+                        channels: state.allChannels,
+                        scrollController: _scrollController,
+                        bottomInset: bottomInset,
+                        searchQuery: _searchQuery,
+                        onTap: _navigateToPlayer,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 class LiveCategoriesBar extends StatefulWidget {
   final List<Map<String, String>> categories;
@@ -85,34 +86,66 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 45,
-      child: ListView.builder(
-        controller: widget.controller,
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        cacheExtent: 1000,
-        itemCount: widget.categories.length,
-        itemBuilder: (context, index) {
-          final cat = widget.categories[index];
-          final isSelected = widget.selectedCategoryId == cat['id'];
-          final count = widget.countMap[cat['id']] ?? 0;
+      child: ScrollConfiguration(
+        behavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+            PointerDeviceKind.unknown,
+          },
+        ),
+        child: Listener(
+          onPointerSignal: (event) {
+            if (event is PointerScrollEvent) {
+              final delta = event.scrollDelta.dy != 0
+                  ? event.scrollDelta.dy
+                  : event.scrollDelta.dx;
+              final c = widget.controller;
+              if (c.hasClients && c.position.hasContentDimensions) {
+                final target = (c.offset + delta).clamp(
+                  c.position.minScrollExtent,
+                  c.position.maxScrollExtent,
+                );
+                c.jumpTo(target);
+              }
+            }
+          },
+          child: Scrollbar(
+            controller: widget.controller,
+            thumbVisibility: true,
+            child: ListView.builder(
+              controller: widget.controller,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              cacheExtent: 1000,
+              itemCount: widget.categories.length,
+              itemBuilder: (context, index) {
+                final cat = widget.categories[index];
+                final isSelected = widget.selectedCategoryId == cat['id'];
+                final count = widget.countMap[cat['id']] ?? 0;
 
-          return Padding(
-            key: widget.keys[index],
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: ChoiceChip(
-              label: Text(
-                '${cat['name']}${cat['id'] != 'all' ? ' ($count)' : ''}',
-              ),
-              selected: isSelected,
-              onSelected: (_) => widget.onSelect(cat['id']!),
-              selectedColor: Colors.redAccent,
-              backgroundColor: Colors.grey[800],
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-              ),
+                return Padding(
+                  key: widget.keys[index],
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: ChoiceChip(
+                    label: Text(
+                      '${cat['name']}${cat['id'] != 'all' ? ' ($count)' : ''}',
+                    ),
+                    selected: isSelected,
+                    onSelected: (_) => widget.onSelect(cat['id']!),
+                    selectedColor: Colors.redAccent,
+                    backgroundColor: Colors.grey[800],
+                    labelStyle: TextStyle(
+                      color: isSelected ? Colors.white : Colors.white70,
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

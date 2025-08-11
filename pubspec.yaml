@@ -57,6 +57,7 @@ dependencies:
   media_kit_libs_windows_video: ^1.0.4 
   window_manager: ^0.5.1
   msix: ^3.16.7
+  device_info_plus: ^11.5.0
 
   
  
@@ -139,7 +140,7 @@ msix_config:
   display_name: Shoof TV
   publisher_display_name: Shoof
   identity_name: com.shoof.tv
-  msix_version: 1.0.0.7
+  msix_version: 1.0.0.9
   logo_path: assets/images/logo.png
   start_menu: true
   desktop_icon: true

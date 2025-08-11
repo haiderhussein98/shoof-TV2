@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/presentation/screens/series/viewmodel/series_viewmodel.dart';
 import '../../../data/models/series_model.dart';
 import 'widgets/series_app_bar.dart';
-import 'widgets/series_search_results_grid.dart';
 import 'widgets/series_category_list.dart';
 
 class SeriesScreen extends ConsumerStatefulWidget {
@@ -13,12 +12,15 @@ class SeriesScreen extends ConsumerStatefulWidget {
   ConsumerState<SeriesScreen> createState() => _SeriesScreenState();
 }
 
-class _SeriesScreenState extends ConsumerState<SeriesScreen> {
+class _SeriesScreenState extends ConsumerState<SeriesScreen>
+    with AutomaticKeepAliveClientMixin {
   late Future<List<Map<String, String>>> _categoriesFuture;
   final TextEditingController _searchController = TextEditingController();
   Future<List<SeriesModel>>? _searchResults;
   bool _isSearching = false;
 
+  @override
+  bool get wantKeepAlive => true;
   @override
   void initState() {
     super.initState();
@@ -28,27 +30,32 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
   void _onSearch(String query) {
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) {
-      setState(() {
-        _searchResults = null;
-        _isSearching = false;
-      });
+      if (mounted) {
+        setState(() {
+          _searchResults = null;
+          _isSearching = false;
+        });
+      }
       return;
     }
-
-    setState(() {
-      _isSearching = true;
-      _searchResults = ref
-          .read(seriesViewModelProvider)
-          .searchSeries(trimmedQuery);
-    });
+    if (mounted) {
+      setState(() {
+        _isSearching = true;
+        _searchResults = ref
+            .read(seriesViewModelProvider)
+            .searchSeries(trimmedQuery);
+      });
+    }
   }
 
   void _clearSearch() {
     _searchController.clear();
-    setState(() {
-      _searchResults = null;
-      _isSearching = false;
-    });
+    if (mounted) {
+      setState(() {
+        _searchResults = null;
+        _isSearching = false;
+      });
+    }
   }
 
   @override
@@ -59,8 +66,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: SeriesAppBar(
@@ -69,44 +75,57 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
         onClear: _clearSearch,
         onSearch: _onSearch,
       ),
-      body: _isSearching && _searchResults != null
-          ? FutureBuilder<List<SeriesModel>>(
-              future: _searchResults,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final results = snapshot.data!;
-                if (results.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'لا توجد نتائج',
-                      style: TextStyle(color: Colors.white),
-                    ),
+      body: SafeArea(
+        child: _isSearching && _searchResults != null
+            ? FutureBuilder<List<SeriesModel>>(
+                future: _searchResults,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text(
+                        'حدث خطأ أثناء البحث',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+                  final results = snapshot.data ?? const <SeriesModel>[];
+                  if (results.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'لا توجد نتائج',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: SizedBox.shrink(),
                   );
-                }
-
-                return SeriesSearchResultsGrid(
-                  results: results,
-                  screenWidth: screenWidth,
-                );
-              },
-            )
-          : FutureBuilder<List<Map<String, String>>>(
-              future: _categoriesFuture,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                final categories = snapshot.data!;
-                return SeriesCategoryList(
-                  categories: categories,
-                  screenWidth: screenWidth,
-                );
-              },
-            ),
+                },
+              )
+            : FutureBuilder<List<Map<String, String>>>(
+                future: _categoriesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text(
+                        'فشل تحميل التصنيفات',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }
+                  final categories =
+                      snapshot.data ?? const <Map<String, String>>[];
+                  return SeriesCategoryList(categories: categories);
+                },
+              ),
+      ),
     );
   }
 }

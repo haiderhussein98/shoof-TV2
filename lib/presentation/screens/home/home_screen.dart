@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +22,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  final List<Widget> screens = const [
+  late final PageController _pageController;
+
+  // ابنِ الشاشات مرة واحدة للحفاظ على الحالة
+  final List<Widget> _screens = const [
     LiveScreen(),
     VodScreen(),
     SeriesScreen(),
@@ -31,7 +35,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: ref.read(homeIndexProvider));
     Future.microtask(_checkSubscriptionStatus);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkSubscriptionStatus() async {
@@ -69,11 +80,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await prefs.setInt(lastShownKey, nowMillis);
   }
 
+  bool _useRail(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
+    final ar = h > 0 ? w / h : 0;
+    final isDesktop =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.linux);
+    if (isDesktop) return true;
+    final looksPhone = size.shortestSide < 600 && ar < 1.2;
+    if (looksPhone) return false;
+    if (w >= 720) return true;
+    if (ar >= 1.3) return true;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 700;
     final index = ref.watch(homeIndexProvider);
     final showAlert = ref.watch(showSubscriptionAlertProvider);
+    final useRail = _useRail(context);
+
+    // ✅ استمع للتغيّر داخل build (مسموح في Riverpod)
+    ref.listen<int>(homeIndexProvider, (prev, next) {
+      if (!mounted) return;
+      if (!_pageController.hasClients) return;
+
+      // تجنّب التحريك لو الـPageView أصلاً على نفس الصفحة
+      final current = _pageController.page?.round();
+      if (current == next) return;
+
+      _pageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    });
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -83,17 +128,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (isWide) const CustomNavigationRail(),
-                const VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                  color: Colors.white12,
-                ),
+                if (useRail) const CustomNavigationRail(),
+                if (useRail)
+                  const VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: Colors.white12,
+                  ),
                 Expanded(
                   child: SafeArea(
                     top: true,
                     bottom: false,
-                    child: screens[index],
+                    // PageView لانتقالات سلسة بين التبويبات
+                    child: PageView(
+                      controller: _pageController,
+                      physics: useRail
+                          ? const NeverScrollableScrollPhysics()
+                          : const PageScrollPhysics(),
+                      onPageChanged: (i) {
+                        // مزامنة المؤشر مع الـ Provider (يفيد لتحديث الـ NavBar)
+                        if (i != index) {
+                          ref.read(homeIndexProvider.notifier).state = i;
+                        }
+                      },
+                      children: _screens,
+                    ),
                   ),
                 ),
               ],
@@ -102,7 +161,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: isWide ? null : const CustomNavigationBar(),
+      bottomNavigationBar: useRail ? null : const CustomNavigationBar(),
     );
   }
 }

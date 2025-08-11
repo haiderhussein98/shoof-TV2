@@ -46,14 +46,52 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
         .toList();
   }
 
-  String formatDate(String? dateStr) {
+  // ========== Sanitizers ==========
+  String _safeText(BuildContext context, String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return 'غير متاح';
+    if (v.toLowerCase() == 'unknown' || v.toLowerCase() == 'n/a') {
+      return 'غير متاح';
+    }
+    return v;
+  }
+
+  String _formatDateLocalized(BuildContext context, String? dateStr) {
+    if (dateStr == null || dateStr.trim().isEmpty) return 'غير متاح';
     try {
-      final date = DateTime.parse(dateStr!);
-      return DateFormat('EEEE, dd MMMM yyyy', 'en_US').format(date);
+      final date = DateTime.parse(dateStr);
+      final locale = Localizations.localeOf(
+        context,
+      ).toLanguageTag(); // مثلا ar, ar-EG
+      // Intl قد يحتاج intl_translation/arb بالاب، هنا نستخدم fallback إن ما توفر
+      final df = DateFormat('EEEE, dd MMMM yyyy', locale);
+      return df.format(date);
     } catch (_) {
-      return 'Unknown';
+      return 'غير متاح';
     }
   }
+
+  String _formatDuration(BuildContext context, String? durationRaw) {
+    if (durationRaw == null) return 'غير متاح';
+    final onlyDigits = RegExp(r'\d+').firstMatch(durationRaw)?.group(0);
+    if (onlyDigits == null) return 'غير متاح';
+    final mins = int.tryParse(onlyDigits) ?? 0;
+    if (mins <= 0) return 'غير متاح';
+    return '$mins دقيقة';
+  }
+
+  String _formatRating(BuildContext context, String? ratingRaw) {
+    final s = _safeText(context, ratingRaw);
+    if (s == 'غير متاح') return s;
+    // لو رقم، نوحّد شكله
+    final n = double.tryParse(s);
+    if (n != null) {
+      // عرض بسيط مثل 7.3/10
+      return '${n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 1)}/10';
+    }
+    return s;
+  }
+  // ========== /Sanitizers ==========
 
   void _playMovie(MovieModel movie) {
     final api = ref.read(vodServiceProvider);
@@ -65,14 +103,19 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
 
     Navigator.of(context).push(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 360),
+        reverseTransitionDuration: const Duration(milliseconds: 280),
         pageBuilder: (_, __, ___) =>
             MoviePlayerScreen(url: videoUrl, title: movie.name),
         transitionsBuilder: (_, animation, __, child) {
+          final curved = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
           return FadeTransition(
-            opacity: animation,
+            opacity: curved,
             child: ScaleTransition(
-              scale: Tween<double>(begin: 0.98, end: 1.0).animate(animation),
+              scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
               child: child,
             ),
           );
@@ -84,7 +127,14 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
   void _openDetails(MovieModel related) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => MovieDetailsScreen(movie: related)),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 260),
+        pageBuilder: (_, __, ___) => MovieDetailsScreen(movie: related),
+        transitionsBuilder: (_, animation, __, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: child,
+        ),
+      ),
     );
   }
 
@@ -149,7 +199,12 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
                     ? _DesktopDetailsLayout(
                         posterWidth: posterClamped,
                         movie: movie,
-                        formatDate: formatDate,
+                        releaseText: _formatDateLocalized(
+                          context,
+                          movie.releaseDate,
+                        ),
+                        durationText: _formatDuration(context, movie.duration),
+                        ratingText: _formatRating(context, movie.rating),
                         relatedMoviesFuture: _relatedMoviesFuture,
                         onPlay: () => _playMovie(movie),
                         onTapRelated: _openDetails,
@@ -157,7 +212,12 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
                     : _MobileDetailsLayout(
                         posterWidth: posterClamped,
                         movie: movie,
-                        formatDate: formatDate,
+                        releaseText: _formatDateLocalized(
+                          context,
+                          movie.releaseDate,
+                        ),
+                        durationText: _formatDuration(context, movie.duration),
+                        ratingText: _formatRating(context, movie.rating),
                         relatedMoviesFuture: _relatedMoviesFuture,
                         onPlay: () => _playMovie(movie),
                         onTapRelated: _openDetails,
@@ -174,7 +234,9 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
 class _DesktopDetailsLayout extends StatelessWidget {
   final double posterWidth;
   final MovieModel movie;
-  final String Function(String?) formatDate;
+  final String releaseText;
+  final String durationText;
+  final String ratingText;
   final Future<List<MovieModel>> relatedMoviesFuture;
   final VoidCallback onPlay;
   final void Function(MovieModel) onTapRelated;
@@ -182,7 +244,9 @@ class _DesktopDetailsLayout extends StatelessWidget {
   const _DesktopDetailsLayout({
     required this.posterWidth,
     required this.movie,
-    required this.formatDate,
+    required this.releaseText,
+    required this.durationText,
+    required this.ratingText,
     required this.relatedMoviesFuture,
     required this.onPlay,
     required this.onTapRelated,
@@ -226,9 +290,9 @@ class _DesktopDetailsLayout extends StatelessWidget {
                   const SizedBox(height: 12),
 
                   MovieMetaRow(
-                    releaseText: formatDate(movie.releaseDate),
-                    durationText: movie.duration ?? '0 min',
-                    ratingText: movie.rating ?? 'N/A',
+                    releaseText: releaseText,
+                    durationText: durationText,
+                    ratingText: ratingText,
                   ),
                   const SizedBox(height: 16),
 
@@ -269,7 +333,9 @@ class _DesktopDetailsLayout extends StatelessWidget {
 class _MobileDetailsLayout extends StatelessWidget {
   final double posterWidth;
   final MovieModel movie;
-  final String Function(String?) formatDate;
+  final String releaseText;
+  final String durationText;
+  final String ratingText;
   final Future<List<MovieModel>> relatedMoviesFuture;
   final VoidCallback onPlay;
   final void Function(MovieModel) onTapRelated;
@@ -277,7 +343,9 @@ class _MobileDetailsLayout extends StatelessWidget {
   const _MobileDetailsLayout({
     required this.posterWidth,
     required this.movie,
-    required this.formatDate,
+    required this.releaseText,
+    required this.durationText,
+    required this.ratingText,
     required this.relatedMoviesFuture,
     required this.onPlay,
     required this.onTapRelated,
@@ -317,9 +385,9 @@ class _MobileDetailsLayout extends StatelessWidget {
         const SizedBox(height: 10),
 
         MovieMetaRow(
-          releaseText: formatDate(movie.releaseDate),
-          durationText: movie.duration ?? '0 min',
-          ratingText: movie.rating ?? 'N/A',
+          releaseText: releaseText,
+          durationText: durationText,
+          ratingText: ratingText,
         ),
         const SizedBox(height: 14),
 

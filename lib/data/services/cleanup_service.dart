@@ -12,7 +12,6 @@ class CleanupService {
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
-
     } catch (e) {
       debugPrint("Cleanup error: $e");
     }
