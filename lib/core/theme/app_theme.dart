@@ -25,9 +25,12 @@ class AppTheme {
       surface: AppColors.cardDark,
     ),
 
-    textTheme: GoogleFonts.poppinsTextTheme().apply(
-      bodyColor: AppColors.lightText,
-      displayColor: AppColors.lightText,
+    textTheme: GoogleFonts.tajawalTextTheme(
+      // ← اختر أي خط عربي
+      const TextTheme(
+        bodyLarge: TextStyle(color: Colors.white),
+        bodyMedium: TextStyle(color: Colors.white70),
+      ),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.primaryRed,

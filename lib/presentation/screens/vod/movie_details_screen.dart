@@ -46,7 +46,96 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
         .toList();
   }
 
-  // ========== Sanitizers ==========
+  // -------------------- عنوان أفضل: Helpers (بدون Reflection) --------------------
+  bool _isUnknownLike(String? s) {
+    if (s == null) return true;
+    final v = s.trim().toLowerCase();
+    return v.isEmpty ||
+        v == 'unknown' ||
+        v == 'n/a' ||
+        v == 'بدون عنوان' ||
+        v == 'غير متاح';
+  }
+
+  Map<String, dynamic> _toMap(dynamic obj) {
+    try {
+      if (obj is Map<String, dynamic>) return obj;
+      // حاول toJson()
+      final dyn = obj as dynamic;
+      if (dyn?.toJson is Function) {
+        final m = dyn.toJson();
+        if (m is Map<String, dynamic>) return m;
+      }
+    } catch (_) {}
+    return const {};
+  }
+
+  String? _readPathFromMap(Map<String, dynamic> m, List<String> path) {
+    dynamic cur = m;
+    for (final key in path) {
+      if (cur is Map && cur.containsKey(key)) {
+        cur = cur[key];
+      } else {
+        return null;
+      }
+    }
+    return cur is String ? cur : null;
+  }
+
+  /// يحاول استخراج أفضل عنوان من model (ثم fallback) بالاعتماد على مفاتيح شائعة
+  String _bestTitle(dynamic model, {dynamic fallback}) {
+    final modelMap = _toMap(model);
+    final fbMap = _toMap(fallback);
+
+    // مفاتيح شائعة في مصادر IPTV/XTream/NFO وغيرها
+    const paths = <List<String>>[
+      ['name'],
+      ['title'],
+      ['movie_name'],
+      ['movieName'],
+      ['original_title'],
+      ['originalTitle'],
+      ['streamDisplayName'],
+      ['stream_name'],
+      // داخل info
+      ['info', 'name'],
+      ['info', 'title'],
+      ['info', 'movie_name'],
+      ['info', 'movieName'],
+    ];
+
+    final candidates = <String?>[];
+
+    // 1) من الـ model نفسه (خرائط مباشرة)
+    for (final p in paths) {
+      candidates.add(_readPathFromMap(modelMap, p));
+    }
+
+    // 2) من خصائص مباشرة محتملة (بدون reflection—نحاول .name فقط)
+    try {
+      final n = (model as dynamic).name as String?;
+      candidates.add(n);
+    } catch (_) {}
+
+    // 3) من الـ fallback إن توفّر
+    if (fallback != null) {
+      for (final p in paths) {
+        candidates.add(_readPathFromMap(fbMap, p));
+      }
+      try {
+        final n2 = (fallback as dynamic).name as String?;
+        candidates.add(n2);
+      } catch (_) {}
+    }
+
+    // أول نص صالح
+    for (final c in candidates) {
+      if (!_isUnknownLike(c)) return c!.trim();
+    }
+    return 'بدون عنوان';
+  }
+  // ------------------------------------------------------------------------------
+
   String _safeText(BuildContext context, String? value) {
     final v = (value ?? '').trim();
     if (v.isEmpty) return 'غير متاح';
@@ -60,10 +149,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     if (dateStr == null || dateStr.trim().isEmpty) return 'غير متاح';
     try {
       final date = DateTime.parse(dateStr);
-      final locale = Localizations.localeOf(
-        context,
-      ).toLanguageTag(); // مثلا ar, ar-EG
-      // Intl قد يحتاج intl_translation/arb بالاب، هنا نستخدم fallback إن ما توفر
+      final locale = Localizations.localeOf(context).toLanguageTag();
       final df = DateFormat('EEEE, dd MMMM yyyy', locale);
       return df.format(date);
     } catch (_) {
@@ -72,26 +158,57 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
   }
 
   String _formatDuration(BuildContext context, String? durationRaw) {
-    if (durationRaw == null) return 'غير متاح';
-    final onlyDigits = RegExp(r'\d+').firstMatch(durationRaw)?.group(0);
-    if (onlyDigits == null) return 'غير متاح';
-    final mins = int.tryParse(onlyDigits) ?? 0;
-    if (mins <= 0) return 'غير متاح';
-    return '$mins دقيقة';
+    if (durationRaw == null || durationRaw.trim().isEmpty) return 'غير متاح';
+    final s = durationRaw.trim();
+
+    // "HH:MM" أو "HH:MM:SS"
+    final colon = RegExp(r'^\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*$');
+    final m = colon.firstMatch(s);
+    if (m != null) {
+      final h = int.tryParse(m.group(1)!) ?? 0;
+      final mi = int.tryParse(m.group(2)!) ?? 0;
+      final se = int.tryParse(m.group(3) ?? '0') ?? 0;
+      final totalMins = h * 60 + mi + (se >= 30 ? 1 : 0);
+      return _arabicDuration(totalMins);
+    }
+
+    // أرقام حرّة "120 min", "6300 sec", "95"
+    final digits = RegExp(r'\d+').firstMatch(s)?.group(0);
+    if (digits == null) return 'غير متاح';
+    final n = int.tryParse(digits) ?? 0;
+    if (n <= 0) return 'غير متاح';
+
+    final lower = s.toLowerCase();
+    final looksSeconds =
+        lower.contains('sec') ||
+        lower.contains('second') ||
+        RegExp(r'\b\d+\s*s\b').hasMatch(lower);
+
+    if (looksSeconds || (!lower.contains('min') && n > 300)) {
+      final totalMins = (n / 60).round();
+      return _arabicDuration(totalMins);
+    }
+
+    return _arabicDuration(n);
+  }
+
+  String _arabicDuration(int totalMins) {
+    final h = totalMins ~/ 60;
+    final mi = totalMins % 60;
+    if (h > 0 && mi > 0) return '$h ساعة $mi دقيقة';
+    if (h > 0) return '$h ساعة';
+    return '$mi دقيقة';
   }
 
   String _formatRating(BuildContext context, String? ratingRaw) {
     final s = _safeText(context, ratingRaw);
     if (s == 'غير متاح') return s;
-    // لو رقم، نوحّد شكله
     final n = double.tryParse(s);
     if (n != null) {
-      // عرض بسيط مثل 7.3/10
       return '${n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 1)}/10';
     }
     return s;
   }
-  // ========== /Sanitizers ==========
 
   void _playMovie(MovieModel movie) {
     final api = ref.read(vodServiceProvider);
@@ -105,8 +222,10 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 360),
         reverseTransitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (_, __, ___) =>
-            MoviePlayerScreen(url: videoUrl, title: movie.name),
+        pageBuilder: (_, __, ___) => MoviePlayerScreen(
+          url: videoUrl,
+          title: _bestTitle(movie, fallback: widget.movie),
+        ),
         transitionsBuilder: (_, animation, __, child) {
           final curved = CurvedAnimation(
             parent: animation,
@@ -153,10 +272,18 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text(
-          widget.movie.name,
-          style: const TextStyle(fontSize: 15),
-          overflow: TextOverflow.ellipsis,
+        title: FutureBuilder<MovieModel>(
+          future: _movieDetailsFuture,
+          builder: (context, snap) {
+            final title = snap.hasData
+                ? _bestTitle(snap.data!, fallback: widget.movie)
+                : _bestTitle(widget.movie);
+            return Text(
+              title,
+              style: const TextStyle(fontSize: 15),
+              overflow: TextOverflow.ellipsis,
+            );
+          },
         ),
       ),
       body: FutureBuilder<MovieModel>(
@@ -176,6 +303,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
           }
 
           final movie = snapshot.data!;
+          final resolvedTitle = _bestTitle(movie, fallback: widget.movie);
 
           final double posterMaxWidth = wideLayout
               ? screen.width.clamp(0, maxContentWidth) * 0.28
@@ -199,6 +327,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
                     ? _DesktopDetailsLayout(
                         posterWidth: posterClamped,
                         movie: movie,
+                        displayTitle: resolvedTitle,
                         releaseText: _formatDateLocalized(
                           context,
                           movie.releaseDate,
@@ -212,6 +341,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
                     : _MobileDetailsLayout(
                         posterWidth: posterClamped,
                         movie: movie,
+                        displayTitle: resolvedTitle,
                         releaseText: _formatDateLocalized(
                           context,
                           movie.releaseDate,
@@ -234,6 +364,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
 class _DesktopDetailsLayout extends StatelessWidget {
   final double posterWidth;
   final MovieModel movie;
+  final String displayTitle;
   final String releaseText;
   final String durationText;
   final String ratingText;
@@ -244,6 +375,7 @@ class _DesktopDetailsLayout extends StatelessWidget {
   const _DesktopDetailsLayout({
     required this.posterWidth,
     required this.movie,
+    required this.displayTitle,
     required this.releaseText,
     required this.durationText,
     required this.ratingText,
@@ -278,7 +410,7 @@ class _DesktopDetailsLayout extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    movie.name,
+                    displayTitle,
                     style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
@@ -288,14 +420,12 @@ class _DesktopDetailsLayout extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
-
                   MovieMetaRow(
                     releaseText: releaseText,
                     durationText: durationText,
                     ratingText: ratingText,
                   ),
                   const SizedBox(height: 16),
-
                   MovieCastOverview(
                     cast: movie.cast,
                     overview: movie.description,
@@ -305,9 +435,7 @@ class _DesktopDetailsLayout extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 30),
-
         const Align(
           alignment: Alignment.centerLeft,
           child: Text(
@@ -320,7 +448,6 @@ class _DesktopDetailsLayout extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-
         RelatedMoviesList(
           future: relatedMoviesFuture,
           onTapMovie: onTapRelated,
@@ -333,6 +460,7 @@ class _DesktopDetailsLayout extends StatelessWidget {
 class _MobileDetailsLayout extends StatelessWidget {
   final double posterWidth;
   final MovieModel movie;
+  final String displayTitle;
   final String releaseText;
   final String durationText;
   final String ratingText;
@@ -343,6 +471,7 @@ class _MobileDetailsLayout extends StatelessWidget {
   const _MobileDetailsLayout({
     required this.posterWidth,
     required this.movie,
+    required this.displayTitle,
     required this.releaseText,
     required this.durationText,
     required this.ratingText,
@@ -373,9 +502,8 @@ class _MobileDetailsLayout extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
         Text(
-          movie.name,
+          displayTitle,
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -383,18 +511,14 @@ class _MobileDetailsLayout extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-
         MovieMetaRow(
           releaseText: releaseText,
           durationText: durationText,
           ratingText: ratingText,
         ),
         const SizedBox(height: 14),
-
         MovieCastOverview(cast: movie.cast, overview: movie.description),
-
         const SizedBox(height: 30),
-
         const Text(
           'أفلام مشابهة',
           style: TextStyle(
@@ -404,7 +528,6 @@ class _MobileDetailsLayout extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-
         RelatedMoviesList(
           future: relatedMoviesFuture,
           onTapMovie: onTapRelated,

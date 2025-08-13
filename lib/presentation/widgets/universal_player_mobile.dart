@@ -122,6 +122,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    // إخفاء شريط الحالة نهائياً أثناء تشغيل المشغّل
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
     _createController(initialForLive: _isLive);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -155,19 +158,32 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     });
   }
 
+  // ============================ خيارات LIVE & VOD ============================
   void _createController({required bool initialForLive}) {
     final source = initialForLive ? _liveStreamUrl : (widget.url ?? '');
+
+    final liveOptions = VlcPlayerOptions(
+      advanced: VlcAdvancedOptions([
+        VlcAdvancedOptions.liveCaching(400),
+        VlcAdvancedOptions.networkCaching(400),
+      ]),
+      http: VlcHttpOptions([':http-user-agent=Mozilla/5.0']),
+    );
+
+    final vodOptions = VlcPlayerOptions(
+      advanced: VlcAdvancedOptions([VlcAdvancedOptions.networkCaching(1000)]),
+      http: VlcHttpOptions([':http-user-agent=Mozilla/5.0']),
+    );
+
     _vlc = VlcPlayerController.network(
       source,
       hwAcc: HwAcc.full,
       autoPlay: initialForLive,
-      options: VlcPlayerOptions(
-        advanced: VlcAdvancedOptions([VlcAdvancedOptions.networkCaching(1000)]),
-        http: VlcHttpOptions([':http-user-agent=Mozilla/5.0']),
-      ),
+      options: initialForLive ? liveOptions : vodOptions,
     );
     _vlc.addListener(_onVlcState);
   }
+  // ==========================================================================
 
   void _onVlcState() {
     if (!mounted || _isDisposed) return;
@@ -540,7 +556,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   }
 
   void _seekBy(int seconds) async {
-    if (_isLive) return;
+    if (_isLive) return; // منع السيك نهائيًا في الحي
     if (_isDisposed) return;
     try {
       final current = await _vlc.getPosition();
@@ -557,6 +573,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     return h > 0 ? '${two(h)}:$m:$s' : '$m:$s';
   }
 
+  // ignore: unused_element
   Widget _signalIndicator() {
     return ValueListenableBuilder<int>(
       valueListenable: _latencyNotifier,
@@ -573,7 +590,30 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         }
         return Tooltip(
           message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
-          child: Icon(icon, color: color, size: 26),
+          child: Icon(icon, color: color, size: 22),
+        );
+      },
+    );
+  }
+
+  // ===== مؤشر شبكة متجاوب (نفس مقياس اللوغو) =====
+  Widget _signalIndicatorSized(double size) {
+    return ValueListenableBuilder<int>(
+      valueListenable: _latencyNotifier,
+      builder: (context, latency, _) {
+        IconData icon = FontAwesomeIcons.wifi;
+        Color color = Colors.red;
+
+        if (latency == -1) {
+          color = Colors.red;
+        } else if (latency < 70) {
+          color = Colors.green;
+        } else if (latency < 200) {
+          color = Colors.orange;
+        }
+        return Tooltip(
+          message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
+          child: Icon(icon, color: color, size: size),
         );
       },
     );
@@ -582,6 +622,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   Future<void> _restoreSystemOrientationOnce() async {
     if (_orientationRestored) return;
     _orientationRestored = true;
+
+    // إعادة إظهار أشرطة النظام عند الخروج
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     if (_isTv) {
       await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -663,6 +706,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
     final ar = _lockedAspectRatio ?? (screen.width / screen.height);
+    final videoW = 1000.0; // عرض وهمي لاحتساب الحجم داخل FittedBox
+    final videoH = videoW / ar;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -702,21 +747,59 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
           onTap: _toggleControls,
           child: Stack(
             children: [
+              // الفيديو يملأ الشاشة بدون حواف وبقصّ آمن
               Positioned.fill(
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: ar,
-                    child: VlcPlayer(
-                      controller: _vlc,
-                      aspectRatio: ar,
-                      placeholder: const Center(
-                        child: CircularProgressIndicator(),
+                child: ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    child: SizedBox(
+                      width: videoW,
+                      height: videoH,
+                      child: VlcPlayer(
+                        controller: _vlc,
+                        aspectRatio: ar,
+                        placeholder: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
 
+              // ===== مؤشّر الشبكة أعلى اليمين: متجاوب مثل اللوغو ويظهر دائمًا في البث =====
+              if (_isLive)
+                Positioned(
+                  right: MediaQuery.of(context).size.width * 0.1,
+                  top: MediaQuery.of(context).size.height * 0.05,
+                  child: IgnorePointer(
+                    ignoring: true, // للعرض فقط
+                    child: Builder(
+                      builder: (context) {
+                        final shortest = MediaQuery.of(
+                          context,
+                        ).size.shortestSide;
+                        final baseLogo = (shortest * 0.12).clamp(48.0, 120.0);
+                        final double iconSize =
+                            baseLogo * 0.38; // مماثل لارتفاع اللوغو
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: _signalIndicatorSized(iconSize),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+              // طبقة تحميل VOD فقط
               if (_isVod)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -742,11 +825,12 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
+              // شريط أعلى (زر رجوع + تدوير)
               if (_showControls)
                 Positioned(
-                  top: 20,
-                  left: 20,
-                  right: 20,
+                  left: 12,
+                  right: 12,
+                  top: 12,
                   child: SafeArea(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -762,19 +846,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                               await _saveLastPositionVod();
                             }
                             await _restoreSystemOrientationOnce();
-
-                            if (!context.mounted) {
-                              return;
-                            }
+                            if (!context.mounted) return;
                             Navigator.of(context).pop();
                           },
                         ),
-                        if (_isLive)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 40),
-                            child: _signalIndicator(),
-                          )
-                        else
+                        if (!_isLive)
                           IconButton(
                             icon: const Icon(
                               Icons.screen_rotation,
@@ -785,6 +861,72 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       ],
                     ),
                   ),
+                ),
+
+              // أسفل الشاشة: VOD = سلايدر تفاعلي | LIVE = سلايدر شكلي + الوقت الحالي فقط
+              if (_showControls)
+                Positioned(
+                  bottom: 12,
+                  left: 10,
+                  right: 10,
+                  child: _isVod
+                      ? Column(
+                          children: [
+                            Slider(
+                              value: _position.inSeconds.toDouble(),
+                              max:
+                                  (_duration.inSeconds > 0
+                                          ? _duration.inSeconds
+                                          : _position.inSeconds + 1)
+                                      .toDouble(),
+                              onChanged: _duration.inSeconds > 0
+                                  ? (v) => _vlc.seekTo(
+                                      Duration(seconds: v.toInt()),
+                                    )
+                                  : null,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _formatTime(_position),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                Text(
+                                  _duration.inSeconds > 0
+                                      ? _formatTime(_duration)
+                                      : '--:--',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      : ValueListenableBuilder<VlcPlayerValue>(
+                          valueListenable: _vlc,
+                          builder: (context, v, _) {
+                            final secs = v.position.inSeconds;
+                            return Column(
+                              children: [
+                                IgnorePointer(
+                                  ignoring: true,
+                                  child: Slider(
+                                    value: secs.toDouble(),
+                                    max: (secs + 1).toDouble(),
+                                    onChanged: (_) {},
+                                  ),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    _formatTime(v.position), // مثال: 2:15 فقط
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                 ),
 
               if (_showControls)
@@ -844,107 +986,30 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              if (_showControls)
+              // اللوغو ثابت أسفل اليمين — متجاوب
+              if (widget.logo != null)
                 Positioned(
-                  bottom: 16,
-                  left: 12,
-                  right: 12,
-                  child: _isVod
-                      ? Column(
-                          children: [
-                            Slider(
-                              value: _position.inSeconds.toDouble(),
-                              max:
-                                  (_duration.inSeconds > 0
-                                          ? _duration.inSeconds
-                                          : _position.inSeconds + 1)
-                                      .toDouble(),
-                              onChanged: _duration.inSeconds > 0
-                                  ? (v) => _vlc.seekTo(
-                                      Duration(seconds: v.toInt()),
-                                    )
-                                  : null,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatTime(_position),
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                Text(
-                                  _duration.inSeconds > 0
-                                      ? _formatTime(_duration)
-                                      : '--:--',
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      : Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(
-                                (0.6 * 255).toInt(),
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white30),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.access_time,
-                                  color: Colors.white70,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-                                ValueListenableBuilder<VlcPlayerValue>(
-                                  valueListenable: _vlc,
-                                  builder: (context, value, _) {
-                                    return Text(
-                                      _formatTime(value.position),
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 20),
-                                IconButton(
-                                  icon: Icon(
-                                    _vlc.value.isPlaying
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: screen.width > 700 ? 40 : 30,
-                                  ),
-                                  onPressed: () {
-                                    if (!mounted || _isDisposed) return;
-                                    if (_vlc.value.isPlaying) {
-                                      _vlc.pause();
-                                    } else {
-                                      _vlc.play();
-                                    }
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
-                            ),
+                  right: MediaQuery.of(context).size.width * 0.05,
+                  bottom: MediaQuery.of(context).size.height * 0.02,
+                  child: SafeArea(
+                    minimum: const EdgeInsets.only(right: 8, bottom: 8),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final w = MediaQuery.of(context).size.width;
+                        final double logoSide = w.clamp(400.0, 2000.0) * 0.12;
+                        final double clamped = logoSide.clamp(48.0, 120.0);
+                        return SizedBox(
+                          width: clamped,
+                          height: clamped * 0.38,
+                          child: FittedBox(
+                            fit: BoxFit.contain,
+                            child: Opacity(opacity: 0.6, child: widget.logo!),
                           ),
-                        ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-
-              Positioned(
-                bottom: 30,
-                right: 60,
-                child: Opacity(opacity: 0.4, child: widget.logo),
-              ),
 
               if (_isLive && _hasError)
                 const Center(

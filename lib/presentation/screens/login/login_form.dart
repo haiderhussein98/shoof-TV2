@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/usecases/login_user.dart';
 import 'package:shoof_tv/presentation/screens/home/home_screen.dart';
@@ -184,6 +186,13 @@ class _TvTextFieldState extends State<_TvTextField> {
 
   bool _editing = false;
 
+  // TV-only: Android + نمط تنقّل Directional
+  bool _isAndroidTvLike(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final nav = MediaQuery.of(context).navigationMode;
+    return isAndroid && nav == NavigationMode.directional;
+  }
+
   @override
   void dispose() {
     _wrapperNode.dispose();
@@ -253,9 +262,39 @@ class _TvTextFieldState extends State<_TvTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final isTv = _isAndroidTvLike(context);
+
+    // على الهاتف/الدسكتوب: حقل عادي بدون منطق الريموت
+    if (!isTv) {
+      return TextField(
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        obscureText: widget.obscureText,
+        textInputAction: widget.textInputAction,
+        onSubmitted: widget.onSubmitted,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: const TextStyle(color: Colors.white38),
+          filled: true,
+          fillColor: Colors.white12,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 12,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      );
+    }
+
+    // على Android TV: منطق الريموت والتركيز والـ Enter لبدء الكتابة
     return Focus(
       focusNode: _wrapperNode,
       onKeyEvent: _handleKey,
+      canRequestFocus: true,
       child: TextField(
         controller: widget.controller,
         focusNode: _textNode,

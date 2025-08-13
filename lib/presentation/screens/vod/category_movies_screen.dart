@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -290,10 +292,8 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
   }
 }
 
-/// حقل البحث بنمط TV:
-/// - عنصر غلاف قابل للتركيز (FocusNode خاص به) يستقبل Enter/OK.
-/// - TextField يملك FocusNode مختلف ولا يُستخدم كـ Focus للغلاف.
-/// - لا تُفتح لوحة المفاتيح إلا عند Enter/OK أو اللمس.
+/// حقل البحث بنمط TV: يمنع إدخال الريموت إلا على أندرويد فقط.
+/// على الديسكتوب يبقى الحقل قابلاً للكتابة مباشرة بالكيبورد.
 class _SearchField extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSubmit;
@@ -310,11 +310,12 @@ class _SearchField extends StatefulWidget {
 }
 
 class _SearchFieldState extends State<_SearchField> {
-  // عقدتان منفصلتان: واحدة للغلاف، وأخرى لحقل النص
   final FocusNode _wrapperNode = FocusNode(debugLabel: 'search_wrapper');
   final FocusNode _textNode = FocusNode(debugLabel: 'search_text');
 
   bool _editing = false;
+
+  bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
 
   @override
   void dispose() {
@@ -327,7 +328,6 @@ class _SearchFieldState extends State<_SearchField> {
     if (_editing) return;
     setState(() => _editing = true);
     _textNode.requestFocus();
-    // إظهار لوحة المفاتيح
     Future.microtask(
       () => SystemChannels.textInput.invokeMethod('TextInput.show'),
     );
@@ -337,16 +337,15 @@ class _SearchFieldState extends State<_SearchField> {
     if (!_editing) return;
     setState(() => _editing = false);
     _textNode.unfocus();
-    // إخفاء لوحة المفاتيح
     SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (!_isAndroid) return KeyEventResult.ignored;
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
     final key = event.logicalKey;
 
-    // Enter / Select / NumpadEnter / Space → ابدأ الكتابة وافتح الكيبورد
     if (key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.select ||
         key == LogicalKeyboardKey.numpadEnter ||
@@ -355,7 +354,6 @@ class _SearchFieldState extends State<_SearchField> {
       return KeyEventResult.handled;
     }
 
-    // Escape / Back → خروج من وضع الكتابة
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
       _stopEditing();
       return KeyEventResult.handled;
@@ -372,7 +370,7 @@ class _SearchFieldState extends State<_SearchField> {
       child: TextField(
         controller: widget.controller,
         focusNode: _textNode,
-        readOnly: !_editing,
+        readOnly: _isAndroid ? !_editing : false,
         onTap: _startEditing,
         onSubmitted: (value) {
           widget.onSubmit(value);

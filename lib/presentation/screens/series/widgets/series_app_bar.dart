@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:shoof_tv/presentation/widgets/app_search_field.dart';
 
 class SeriesAppBar extends StatefulWidget implements PreferredSizeWidget {
@@ -49,9 +51,17 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
         Directionality.of(context) == TextDirection.rtl;
   }
 
+  // نحدد هل الجهاز TV-like (تنقل Directional) على أندرويد فقط
+  bool _isAndroidTvLike(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final nav = MediaQuery.of(context).navigationMode;
+    return isAndroid && nav == NavigationMode.directional;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRtl = _isRTL(context);
+    final isTv = _isAndroidTvLike(context);
 
     return AppBar(
       backgroundColor: Colors.black,
@@ -75,6 +85,7 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
                   focusNode: _wrapperFocus,
                   onFocusChange: (f) => setState(() => _wrapperHasFocus = f),
                   onKeyEvent: (node, event) {
+                    if (!isTv) return KeyEventResult.ignored; // فقط على TV
                     if (event is KeyDownEvent) {
                       final isEnter =
                           event.logicalKey == LogicalKeyboardKey.enter ||
@@ -100,7 +111,7 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
                     duration: const Duration(milliseconds: 120),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: !_searchEnabled && _wrapperHasFocus
+                      border: isTv && !_searchEnabled && _wrapperHasFocus
                           ? Border.all(
                               color: Colors.redAccent.withValues(alpha: 0.2),
                               width: 2,
@@ -108,15 +119,16 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
                           : null,
                     ),
                     child: ExcludeFocus(
-                      excluding: !_searchEnabled,
+                      excluding: isTv ? !_searchEnabled : false,
                       child: AppSearchField(
                         controller: widget.searchController,
                         hintAr: 'ابحث عن مسلسل...',
                         hintEn: 'Search series...',
                         padding: EdgeInsets.zero,
+                        onChanged: widget.onSearch,
                         onSubmitted: widget.onSearch,
                         focusNode: _searchFocus,
-                        readOnly: !_searchEnabled,
+                        readOnly: isTv ? !_searchEnabled : false,
                       ),
                     ),
                   ),

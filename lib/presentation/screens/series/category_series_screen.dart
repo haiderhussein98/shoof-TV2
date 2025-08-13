@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shoof_tv/domain/providers/series_providers.dart';
@@ -31,7 +33,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
   bool _isLoading = false;
   bool _hasMore = true;
   int _offset = 0;
-  final int _limit = 30;
+  final int _limit = 2000;
 
   final List<FocusNode> _itemFocus = [];
   final Map<int, GlobalKey> _itemKeys = {};
@@ -109,10 +111,25 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
     super.dispose();
   }
 
+  bool _isRTL(BuildContext context) {
+    final code = Localizations.localeOf(context).languageCode.toLowerCase();
+    return const {'ar', 'fa', 'ur', 'he'}.contains(code) ||
+        Directionality.of(context) == TextDirection.rtl;
+  }
+
+  // TV-only: Android + تنقّل اتجاهي
+  bool _isAndroidTvLike(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final nav = MediaQuery.of(context).navigationMode;
+    return isAndroid && nav == NavigationMode.directional;
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final screenWidth = MediaQuery.of(context).size.width;
+    final isTv = _isAndroidTvLike(context);
+    final isRtl = _isRTL(context);
 
     int getCrossAxisCount() {
       if (screenWidth >= 1200) return 6;
@@ -121,11 +138,6 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
       return 3;
     }
 
-    final isRtl =
-        const {'ar', 'fa', 'ur', 'he'}.contains(
-          Localizations.localeOf(context).languageCode.toLowerCase(),
-        ) ||
-        Directionality.of(context) == TextDirection.rtl;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.categoryName, style: const TextStyle(fontSize: 12)),
@@ -146,7 +158,10 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
               child: Directionality(
                 textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
                 child: Focus(
+                  canRequestFocus: isTv, // تركيز فقط على TV
+                  skipTraversal: !isTv,
                   onKeyEvent: (node, event) {
+                    if (!isTv) return KeyEventResult.ignored;
                     if (event is KeyDownEvent) {
                       final isEnter =
                           event.logicalKey == LogicalKeyboardKey.enter ||
@@ -172,7 +187,8 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                     duration: const Duration(milliseconds: 120),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: !_searchEnabled && Focus.of(context).hasFocus
+                      border:
+                          isTv && !_searchEnabled && Focus.of(context).hasFocus
                           ? Border.all(
                               color: Colors.redAccent.withValues(alpha: 0.2),
                               width: 2,
@@ -181,11 +197,11 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                     ),
                     child: Focus(
                       focusNode: _searchFocus,
-                      canRequestFocus: _searchEnabled,
-                      skipTraversal: !_searchEnabled,
+                      canRequestFocus: isTv ? _searchEnabled : false,
+                      skipTraversal: !isTv || !_searchEnabled,
                       child: TextField(
                         controller: _searchController,
-                        readOnly: !_searchEnabled,
+                        readOnly: isTv ? !_searchEnabled : false,
                         onChanged: (val) => _searchQuery.value = val,
                         decoration: InputDecoration(
                           hintText: isRtl
@@ -258,7 +274,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
 
                   return FocusTraversalGroup(
                     policy: ReadingOrderTraversalPolicy(),
-                    descendantsAreFocusable: true,
+                    descendantsAreFocusable: isTv, // تعطيل التركيز إن لم تكن TV
                     child: GridView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -287,7 +303,10 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                         final itemKey = _itemKeys[index]!;
 
                         return Focus(
+                          canRequestFocus: isTv,
+                          skipTraversal: !isTv,
                           onKeyEvent: (node, event) {
+                            if (!isTv) return KeyEventResult.ignored;
                             if (event is KeyDownEvent &&
                                 event.logicalKey ==
                                     LogicalKeyboardKey.arrowUp) {
@@ -299,13 +318,15 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                           child: FocusableActionDetector(
                             key: itemKey,
                             focusNode: focusNode,
-                            autofocus: index == _autofocusIndex,
-                            shortcuts: const {
-                              SingleActivator(LogicalKeyboardKey.select):
-                                  ActivateIntent(),
-                              SingleActivator(LogicalKeyboardKey.enter):
-                                  ActivateIntent(),
-                            },
+                            autofocus: isTv && index == _autofocusIndex,
+                            shortcuts: isTv
+                                ? const {
+                                    SingleActivator(LogicalKeyboardKey.select):
+                                        ActivateIntent(),
+                                    SingleActivator(LogicalKeyboardKey.enter):
+                                        ActivateIntent(),
+                                  }
+                                : const <ShortcutActivator, Intent>{},
                             actions: {
                               ActivateIntent: CallbackAction<ActivateIntent>(
                                 onInvoke: (_) {
@@ -387,24 +408,23 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                               },
                               child: AnimatedScale(
                                 duration: const Duration(milliseconds: 120),
-                                scale: focusNode.hasFocus ? 1.06 : 1.0,
+                                scale: isTv && focusNode.hasFocus ? 1.06 : 1.0,
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 120),
                                   decoration: BoxDecoration(
-                                    border: focusNode.hasFocus
+                                    border: isTv && focusNode.hasFocus
                                         ? Border.all(
                                             color: Colors.redAccent,
                                             width: 2,
                                           )
                                         : null,
                                     borderRadius: BorderRadius.circular(10),
-                                    boxShadow: focusNode.hasFocus
+                                    boxShadow: isTv && focusNode.hasFocus
                                         ? [
                                             BoxShadow(
                                               color: Colors.black.withValues(
                                                 alpha: 0.35,
                                               ),
-
                                               blurRadius: 16,
                                               offset: const Offset(0, 6),
                                             ),

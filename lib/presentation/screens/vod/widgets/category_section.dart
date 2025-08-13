@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/data/models/movie_model.dart.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
@@ -36,6 +38,12 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
   bool _seeAllHasFocus = false;
 
   bool _pendingFocusToFirst = false;
+
+  bool _isAndroidTv(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    return isAndroid &&
+        MediaQuery.of(context).navigationMode == NavigationMode.directional;
+  }
 
   @override
   void dispose() {
@@ -123,6 +131,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTv = _isAndroidTv(context);
+
     final moviesFuture = ref
         .read(vodServiceProvider)
         .getMoviesByCategory(widget.categoryId, offset: 0, limit: 20);
@@ -132,7 +142,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context),
+          _buildHeader(context, isTv),
           SizedBox(
             height: widget.screenWidth > 600 ? 230 : 190,
             child: FutureBuilder<List<MovieModel>>(
@@ -190,6 +200,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
 
                       return Focus(
                         onKeyEvent: (node, event) {
+                          if (!isTv) return KeyEventResult.ignored;
                           if (event is KeyDownEvent &&
                               event.logicalKey == LogicalKeyboardKey.arrowUp) {
                             _seeAllFocus.requestFocus();
@@ -199,14 +210,16 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                         },
                         child: FocusableActionDetector(
                           key: itemKey,
-                          focusNode: focusNode,
-                          autofocus: index == _autofocusIndex,
-                          shortcuts: const {
-                            SingleActivator(LogicalKeyboardKey.select):
-                                ActivateIntent(),
-                            SingleActivator(LogicalKeyboardKey.enter):
-                                ActivateIntent(),
-                          },
+                          focusNode: isTv ? focusNode : null,
+                          autofocus: isTv && index == _autofocusIndex,
+                          shortcuts: isTv
+                              ? const {
+                                  SingleActivator(LogicalKeyboardKey.select):
+                                      ActivateIntent(),
+                                  SingleActivator(LogicalKeyboardKey.enter):
+                                      ActivateIntent(),
+                                }
+                              : const <ShortcutActivator, Intent>{},
                           actions: {
                             ActivateIntent: CallbackAction<ActivateIntent>(
                               onInvoke: (_) {
@@ -234,26 +247,25 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                             onTap: () => _openMovie(context, movie, index),
                             child: AnimatedScale(
                               duration: const Duration(milliseconds: 120),
-                              scale: focusNode.hasFocus ? 1.06 : 1.0,
+                              scale: isTv && (focusNode.hasFocus) ? 1.06 : 1.0,
                               child: AnimatedContainer(
                                 width: itemWidth,
                                 height: double.infinity,
                                 duration: const Duration(milliseconds: 120),
                                 decoration: BoxDecoration(
-                                  border: focusNode.hasFocus
+                                  border: isTv && focusNode.hasFocus
                                       ? Border.all(
                                           color: Colors.redAccent,
                                           width: 2,
                                         )
                                       : null,
                                   borderRadius: BorderRadius.circular(12),
-                                  boxShadow: focusNode.hasFocus
+                                  boxShadow: isTv && focusNode.hasFocus
                                       ? [
                                           BoxShadow(
                                             color: Colors.black.withValues(
                                               alpha: 0.35,
                                             ),
-
                                             blurRadius: 16,
                                             offset: const Offset(0, 6),
                                           ),
@@ -312,7 +324,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isTv) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
@@ -332,10 +344,11 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
           ),
           const SizedBox(width: 10),
           Focus(
-            focusNode: _seeAllFocus,
-            canRequestFocus: true,
+            focusNode: isTv ? _seeAllFocus : null,
+            canRequestFocus: isTv,
             onFocusChange: (f) => setState(() => _seeAllHasFocus = f),
             onKeyEvent: (node, event) {
+              if (!isTv) return KeyEventResult.ignored;
               if (event is KeyDownEvent) {
                 final isSelect =
                     event.logicalKey == LogicalKeyboardKey.enter ||
@@ -364,7 +377,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
-                  border: _seeAllHasFocus
+                  border: isTv && _seeAllHasFocus
                       ? Border.all(color: Colors.redAccent, width: 2)
                       : null,
                 ),

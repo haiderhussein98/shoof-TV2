@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
+
 import 'package:shoof_tv/presentation/screens/series/viewmodel/series_viewmodel.dart';
 import '../../../data/models/series_model.dart';
 import 'widgets/series_app_bar.dart';
 import 'widgets/series_category_list.dart';
+import 'series_details_screen.dart';
 
 class SeriesScreen extends ConsumerStatefulWidget {
   const SeriesScreen({super.key});
@@ -21,6 +26,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
 
   @override
   bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -64,47 +70,29 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
     super.dispose();
   }
 
+  bool _isAndroidTvLike(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    return isAndroid &&
+        MediaQuery.of(context).navigationMode == NavigationMode.directional;
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: SeriesAppBar(
         searchController: _searchController,
         isSearching: _isSearching,
         onClear: _clearSearch,
-        onSearch: _onSearch,
+        onSearch: _onSearch, // onChanged + onSubmitted من الAppBar
       ),
       body: SafeArea(
         child: _isSearching && _searchResults != null
-            ? FutureBuilder<List<SeriesModel>>(
-                future: _searchResults,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text(
-                        'حدث خطأ أثناء البحث',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-                  final results = snapshot.data ?? const <SeriesModel>[];
-                  if (results.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'لا توجد نتائج',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-                  return const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: SizedBox.shrink(),
-                  );
-                },
+            ? _SeriesSearchResultsGrid(
+                resultsFuture: _searchResults!,
+                isTv: _isAndroidTvLike(context),
               )
             : FutureBuilder<List<Map<String, String>>>(
                 future: _categoriesFuture,
@@ -126,6 +114,205 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
                 },
               ),
       ),
+    );
+  }
+}
+
+class _SeriesSearchResultsGrid extends StatefulWidget {
+  final Future<List<SeriesModel>> resultsFuture;
+  final bool isTv;
+
+  const _SeriesSearchResultsGrid({
+    required this.resultsFuture,
+    required this.isTv,
+  });
+
+  @override
+  State<_SeriesSearchResultsGrid> createState() =>
+      _SeriesSearchResultsGridState();
+}
+
+class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
+  final List<FocusNode> _nodes = [];
+  int? _loadingIndex;
+
+  @override
+  void dispose() {
+    for (final n in _nodes) {
+      n.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _openDetails(SeriesModel s, int index) async {
+    if (_loadingIndex != null) return;
+    setState(() => _loadingIndex = index);
+
+    try {
+      await Navigator.push(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 260),
+          pageBuilder: (_, __, ___) => SeriesDetailsScreen(series: s),
+          transitionsBuilder: (_, animation, __, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _loadingIndex = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+
+    int cross() {
+      if (w >= 1200) return 6;
+      if (w >= 900) return 5;
+      if (w >= 600) return 4;
+      return 3;
+    }
+
+    return FutureBuilder<List<SeriesModel>>(
+      future: widget.resultsFuture,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return const Center(
+            child: Text(
+              'حدث خطأ أثناء البحث',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+        final results = snap.data ?? const <SeriesModel>[];
+        if (results.isEmpty) {
+          return const Center(
+            child: Text(
+              'لا توجد نتائج',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+
+        // تحضير فوكس للعناصر (TV فقط)
+        if (_nodes.length != results.length) {
+          for (final n in _nodes) {
+            n.dispose();
+          }
+          _nodes.clear();
+          _nodes.addAll(List.generate(results.length, (_) => FocusNode()));
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cross(),
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: results.length,
+          itemBuilder: (context, i) {
+            final s = results[i];
+            final node = _nodes[i];
+            final loading = _loadingIndex == i;
+
+            final card = ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // استخدم Image.network لتجنب إضافة حزم
+                  Image.network(
+                    s.cover,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.error, color: Colors.redAccent),
+                    loadingBuilder: (ctx, child, evt) {
+                      if (evt == null) return child;
+                      return const ColoredBox(
+                        color: Colors.black12,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                  ),
+                  if (loading)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+
+            final tile = AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              decoration: BoxDecoration(
+                border: widget.isTv && node.hasFocus
+                    ? Border.all(color: Colors.redAccent, width: 2)
+                    : null,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: widget.isTv && node.hasFocus
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: card,
+            );
+
+            return FocusableActionDetector(
+              focusNode: widget.isTv ? node : null,
+              autofocus: widget.isTv && i == 0,
+              shortcuts: widget.isTv
+                  ? const {
+                      SingleActivator(LogicalKeyboardKey.select):
+                          ActivateIntent(),
+                      SingleActivator(LogicalKeyboardKey.enter):
+                          ActivateIntent(),
+                    }
+                  : const <ShortcutActivator, Intent>{},
+              actions: {
+                ActivateIntent: CallbackAction<ActivateIntent>(
+                  onInvoke: (_) {
+                    _openDetails(s, i);
+                    return null;
+                  },
+                ),
+              },
+              child: GestureDetector(
+                onTap: () => _openDetails(s, i),
+                child: tile,
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

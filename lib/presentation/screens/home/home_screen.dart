@@ -24,7 +24,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final PageController _pageController;
 
-  // ابنِ الشاشات مرة واحدة للحفاظ على الحالة
   final List<Widget> _screens = const [
     LiveScreen(),
     VodScreen(),
@@ -104,12 +103,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final showAlert = ref.watch(showSubscriptionAlertProvider);
     final useRail = _useRail(context);
 
-    // ✅ استمع للتغيّر داخل build (مسموح في Riverpod)
     ref.listen<int>(homeIndexProvider, (prev, next) {
       if (!mounted) return;
       if (!_pageController.hasClients) return;
 
-      // تجنّب التحريك لو الـPageView أصلاً على نفس الصفحة
       final current = _pageController.page?.round();
       if (current == next) return;
 
@@ -139,14 +136,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: SafeArea(
                     top: true,
                     bottom: false,
-                    // PageView لانتقالات سلسة بين التبويبات
                     child: PageView(
                       controller: _pageController,
                       physics: useRail
                           ? const NeverScrollableScrollPhysics()
                           : const PageScrollPhysics(),
                       onPageChanged: (i) {
-                        // مزامنة المؤشر مع الـ Provider (يفيد لتحديث الـ NavBar)
                         if (i != index) {
                           ref.read(homeIndexProvider.notifier).state = i;
                         }

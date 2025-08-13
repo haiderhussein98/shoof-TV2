@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 import '../../../../data/models/movie_model.dart.dart';
 import '../movie_details_screen.dart';
@@ -29,6 +31,11 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
     super.dispose();
   }
 
+  bool _isAndroidTV(BuildContext context) {
+    return defaultTargetPlatform == TargetPlatform.android &&
+        MediaQuery.of(context).navigationMode == NavigationMode.directional;
+  }
+
   Future<void> _openMovie(MovieModel movie, int index) async {
     if (_isNavigating) return;
 
@@ -50,7 +57,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
           builder: (_) => MovieDetailsScreen(movie: movieDetails),
         ),
       );
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -71,6 +78,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final isTv = _isAndroidTV(context);
 
     return FutureBuilder<List<MovieModel>>(
       future: widget.searchResults,
@@ -87,7 +95,9 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
         }
 
         if (_focusNodes.length != results.length) {
-          _focusNodes.clear();
+          _focusNodes
+            ..forEach((n) => n.dispose())
+            ..clear();
           _focusNodes.addAll(List.generate(results.length, (_) => FocusNode()));
         }
 
@@ -111,30 +121,38 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
 
             return FocusableActionDetector(
               focusNode: focusNode,
-              autofocus: index == 0,
-              shortcuts: {
-                const SingleActivator(LogicalKeyboardKey.select):
-                    const ActivateIntent(),
-                const SingleActivator(LogicalKeyboardKey.enter):
-                    const ActivateIntent(),
-              },
-              actions: {
-                ActivateIntent: CallbackAction<ActivateIntent>(
-                  onInvoke: (_) {
-                    _openMovie(movie, index);
-                    return null;
-                  },
-                ),
-              },
+              // تركيز تلقائي فقط على TV
+              autofocus: isTv && index == 0,
+              // اختصارات الريموت فقط على TV
+              shortcuts: isTv
+                  ? const {
+                      SingleActivator(LogicalKeyboardKey.select):
+                          ActivateIntent(),
+                      SingleActivator(LogicalKeyboardKey.enter):
+                          ActivateIntent(),
+                    }
+                  : const <ShortcutActivator, Intent>{},
+              actions: isTv
+                  ? {
+                      ActivateIntent: CallbackAction<ActivateIntent>(
+                        onInvoke: (_) {
+                          _openMovie(movie, index);
+                          return null;
+                        },
+                      ),
+                    }
+                  : const <Type, Action<Intent>>{},
               onShowFocusHighlight: (hasFocus) {
-                setState(() {}); // لتغيير شكل العنصر عند التركيز
+                if (isTv) {
+                  setState(() {});
+                }
               },
               child: GestureDetector(
                 onTap: () => _openMovie(movie, index),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   decoration: BoxDecoration(
-                    border: focusNode.hasFocus
+                    border: isTv && focusNode.hasFocus
                         ? Border.all(color: Colors.redAccent, width: 2)
                         : null,
                     borderRadius: BorderRadius.circular(10),

@@ -16,7 +16,7 @@ class SeriesViewModel {
     return _apiService.getSeriesCategories();
   }
 
-  Future<List<SeriesModel>> getSeries({int offset = 0, int limit = 1000}) {
+  Future<List<SeriesModel>> getSeries({int offset = 0, int limit = 2000}) {
     return _apiService.getSeries(offset: offset, limit: limit);
   }
 

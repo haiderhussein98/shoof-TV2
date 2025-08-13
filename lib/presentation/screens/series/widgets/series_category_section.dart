@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shoof_tv/domain/providers/series_providers.dart';
@@ -39,7 +41,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
     super.initState();
     _seriesFuture = ref
         .read(seriesServiceProvider)
-        .getSeriesByCategory(widget.categoryId, offset: 0, limit: 10);
+        .getSeriesByCategory(widget.categoryId, offset: 0, limit: 2000);
   }
 
   @override
@@ -49,6 +51,13 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
     }
     _seeAllFocus.dispose();
     super.dispose();
+  }
+
+  // TV-only: Android + تنقّل اتجاهي
+  bool _isAndroidTvLike(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    final nav = MediaQuery.of(context).navigationMode;
+    return isAndroid && nav == NavigationMode.directional;
   }
 
   Future<void> _openSeries(
@@ -110,12 +119,14 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
     final dpr = MediaQuery.of(context).devicePixelRatio;
+    final isTv = _isAndroidTvLike(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // العنوان + زر مشاهدة الكل
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
@@ -134,9 +145,10 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                 ),
                 Focus(
                   focusNode: _seeAllFocus,
-                  canRequestFocus: true,
+                  canRequestFocus: isTv, // تركيز فقط على TV
                   onFocusChange: (f) => setState(() => _seeAllHasFocus = f),
                   onKeyEvent: (node, event) {
+                    if (!isTv) return KeyEventResult.ignored;
                     if (event is KeyDownEvent) {
                       final isSelect =
                           event.logicalKey == LogicalKeyboardKey.enter ||
@@ -194,6 +206,8 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
               ],
             ),
           ),
+
+          // القائمة الأفقية
           SizedBox(
             height: w > 600 ? 230 : 190,
             child: FutureBuilder<List<SeriesModel>>(
@@ -227,8 +241,9 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                 }
 
                 return FocusTraversalGroup(
+                  // تعطيل التركيز للذريّات على غير TV
+                  descendantsAreFocusable: isTv,
                   policy: ReadingOrderTraversalPolicy(),
-                  descendantsAreFocusable: true,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -243,7 +258,10 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                       final itemKey = _itemKeys[index]!;
 
                       return Focus(
+                        canRequestFocus: isTv,
+                        skipTraversal: !isTv,
                         onKeyEvent: (node, event) {
+                          if (!isTv) return KeyEventResult.ignored;
                           if (event is KeyDownEvent &&
                               event.logicalKey == LogicalKeyboardKey.arrowUp) {
                             _seeAllFocus.requestFocus();
@@ -254,13 +272,15 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                         child: FocusableActionDetector(
                           key: itemKey,
                           focusNode: focusNode,
-                          autofocus: index == _autofocusIndex,
-                          shortcuts: const {
-                            SingleActivator(LogicalKeyboardKey.select):
-                                ActivateIntent(),
-                            SingleActivator(LogicalKeyboardKey.enter):
-                                ActivateIntent(),
-                          },
+                          autofocus: isTv && index == _autofocusIndex,
+                          shortcuts: isTv
+                              ? const {
+                                  SingleActivator(LogicalKeyboardKey.select):
+                                      ActivateIntent(),
+                                  SingleActivator(LogicalKeyboardKey.enter):
+                                      ActivateIntent(),
+                                }
+                              : const <ShortcutActivator, Intent>{},
                           actions: {
                             ActivateIntent: CallbackAction<ActivateIntent>(
                               onInvoke: (_) {
@@ -288,26 +308,25 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                             onTap: () => _openSeries(context, series, index),
                             child: AnimatedScale(
                               duration: const Duration(milliseconds: 120),
-                              scale: focusNode.hasFocus ? 1.06 : 1.0,
+                              scale: isTv && focusNode.hasFocus ? 1.06 : 1.0,
                               child: AnimatedContainer(
                                 width: itemW,
                                 height: double.infinity,
                                 duration: const Duration(milliseconds: 120),
                                 decoration: BoxDecoration(
-                                  border: focusNode.hasFocus
+                                  border: isTv && focusNode.hasFocus
                                       ? Border.all(
                                           color: Colors.redAccent,
                                           width: 2,
                                         )
                                       : null,
                                   borderRadius: BorderRadius.circular(12),
-                                  boxShadow: focusNode.hasFocus
+                                  boxShadow: isTv && focusNode.hasFocus
                                       ? [
                                           BoxShadow(
                                             color: Colors.black.withValues(
                                               alpha: 0.35,
                                             ),
-
                                             blurRadius: 16,
                                             offset: const Offset(0, 6),
                                           ),

@@ -22,15 +22,18 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
   final ValueNotifier<String> _searchQuery = ValueNotifier('');
   final ScrollController _categoryScrollController = ScrollController();
   final ScrollController _scrollController = ScrollController();
+
+  /// مهم: لا نعيد إنشاء المفاتيح عند كل build.
   List<GlobalKey> _categoryKeys = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    Future.microtask(
-      () => ref.read(liveViewModelProvider.notifier).initialize(),
-    );
+    // تهيئة البيانات مرة واحدة بعد الإطار الأول.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(liveViewModelProvider.notifier).initialize();
+    });
   }
 
   void _onScroll() {
@@ -50,18 +53,21 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         .read(liveViewModelProvider.notifier)
         .fetchChannelsByCategory(categoryId);
 
+    // تمرير Scroll ليظهر التصنيف المحدد في المنتصف تقريبًا.
     final index = ref
         .read(liveViewModelProvider)
         .categories
         .indexWhere((cat) => cat['id'] == categoryId);
+
     if (index != -1 && _categoryKeys.length > index) {
       final key = _categoryKeys[index];
       final ctx = key.currentContext;
       if (ctx != null && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && ctx.mounted) {
+          final itemCtx = key.currentContext;
+          if (mounted && itemCtx != null && itemCtx.mounted) {
             Scrollable.ensureVisible(
-              ctx,
+              itemCtx,
               duration: const Duration(milliseconds: 400),
               alignment: 0.5,
               curve: Curves.easeInOut,
@@ -111,7 +117,14 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(liveViewModelProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    _categoryKeys = List.generate(state.categories.length, (_) => GlobalKey());
+
+    // حدّث قائمة المفاتيح فقط عند تغيّر طول التصنيفات.
+    if (_categoryKeys.length != state.categories.length) {
+      _categoryKeys = List.generate(
+        state.categories.length,
+        (_) => GlobalKey(),
+      );
+    }
 
     return Scaffold(
       appBar: const LiveAppBar(),
@@ -119,6 +132,7 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => FocusScope.of(context).unfocus(),
               child: Padding(
                 padding: context.pagePadding,

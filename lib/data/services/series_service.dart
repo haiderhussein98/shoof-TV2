@@ -72,7 +72,7 @@ class SeriesService {
   Future<List<SeriesModel>> getSeriesByCategory(
     String categoryId, {
     required int offset,
-    int limit = 30,
+    int limit = 2000,
   }) async {
     final url = Uri.parse(
       '$serverUrl/player_api.php?username=$username&password=$password&action=get_series',

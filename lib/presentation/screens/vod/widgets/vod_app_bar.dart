@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 
 class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController controller;
@@ -80,6 +82,12 @@ class _VodSearchFieldState extends State<_VodSearchField> {
   final FocusNode _focusNode = FocusNode(debugLabel: 'vod_search_field');
   bool _editing = false;
 
+  bool _isAndroidTv(BuildContext context) {
+    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+    return isAndroid &&
+        MediaQuery.of(context).navigationMode == NavigationMode.directional;
+  }
+
   @override
   void dispose() {
     _focusNode.dispose();
@@ -103,6 +111,10 @@ class _VodSearchFieldState extends State<_VodSearchField> {
   }
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    // منطق الريموت يعمل فقط على Android TV
+    final isTv = _isAndroidTv(context);
+    if (!isTv) return KeyEventResult.ignored;
+
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
     final key = event.logicalKey;
 
@@ -147,14 +159,17 @@ class _VodSearchFieldState extends State<_VodSearchField> {
 
   @override
   Widget build(BuildContext context) {
+    final isTv = _isAndroidTv(context);
+
     return Focus(
       onKeyEvent: _handleKey,
       child: TextField(
         focusNode: _focusNode,
         controller: widget.controller,
-        readOnly: !_editing,
-        showCursor: _editing,
-        enableInteractiveSelection: _editing,
+        // على Android TV فقط يكون readOnly إلى أن يضغط المستخدم Enter/OK
+        readOnly: isTv ? !_editing : false,
+        showCursor: isTv ? _editing : true,
+        enableInteractiveSelection: isTv ? _editing : true,
         onTap: _startEditing,
         onSubmitted: (value) {
           widget.onSearch(value);
@@ -179,7 +194,7 @@ class _VodSearchFieldState extends State<_VodSearchField> {
                   icon: const Icon(Icons.clear, color: Colors.white54),
                   onPressed: () {
                     widget.onClear();
-                    if (_editing) {
+                    if (isTv && _editing) {
                       _focusNode.requestFocus();
                     }
                   },
