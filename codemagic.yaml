@@ -1,4 +1,3 @@
-# codemagic.yaml
 workflows:
   ios_unsigned:
     name: iOS Unsigned IPA (shoof_tv)
@@ -11,27 +10,26 @@ workflows:
         APP_NAME: "Shoof TV"
         BUNDLE_ID: "com.shoof.tv"
         IOS_MIN_VERSION: "13.0"
+
     cache:
       cache_paths:
         - ~/.pub-cache
-        - ios/Pods
-        - ~/Library/Caches/CocoaPods
 
     scripts:
-      - name: Flutter clean & pub get
+      - name: Flutter clean & get
         script: |
           flutter --version
           flutter clean
           flutter pub get
 
-      - name: Ensure iOS platform & bundle id
+      - name: Ensure iOS bundle id & min iOS
         script: |
-          # تأكيد platform في Podfile
+          # اضبط أقل إصدار iOS في Podfile (لو موجود)
           if [ -f ios/Podfile ]; then
             sed -i '' -E "s/^#?\\s*platform :ios, '.*'/platform :ios, '${IOS_MIN_VERSION}'/" ios/Podfile || true
           fi
 
-          # ضبط CFBundleIdentifier واسم التطبيق في Info.plist
+          # اضبط المعرف واسم التطبيق في Info.plist
           PLIST="ios/Runner/Info.plist"
           /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${BUNDLE_ID}" "$PLIST"
           /usr/libexec/PlistBuddy -c "Set :CFBundleName ${APP_NAME}" "$PLIST" || \
@@ -39,37 +37,14 @@ workflows:
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ${APP_NAME}" "$PLIST" || \
           /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string ${APP_NAME}" "$PLIST"
 
-      - name: Pod install (fresh)
+      - name: Build unsigned IPA (no code sign)
         script: |
-          cd ios
-          rm -rf Pods Podfile.lock
-          pod repo update
-          pod install --verbose
-          cd ..
-
-      - name: Build iOS (no code sign)
-        script: |
-          # يبني Runner.app إصدار Release بدون توقيع
-          flutter build ios --release --no-codesign
-
-      - name: Package unsigned .ipa
-        script: |
-          APP_PATH="build/ios/iphoneos/Runner.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "❌ Runner.app not found at $APP_PATH"
-            exit 1
-          fi
-          rm -rf Payload
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/Runner.app
-          /usr/bin/zip -r "shoof_tv-unsigned.ipa" Payload
-          mv "shoof_tv-unsigned.ipa" "$CM_ARTIFACTS/shoof_tv-unsigned.ipa"
-          echo "✅ Created $CM_ARTIFACTS/shoof_tv-unsigned.ipa"
+          # هذا هو السر: خروج IPA غير موقّع مباشرة بدون طلب فريق توقيع
+          flutter build ipa --release --no-codesign
 
     artifacts:
-      - $CM_ARTIFACTS/shoof_tv-unsigned.ipa
+      - build/ios/ipa/*.ipa
       - build/ios/iphoneos/*.app
 
     triggering:
-      # اختياري: شغّل يدوي فقط من لوحة Builds
-      events: []
+      events: []   # تشغيل يدوي من لوحة Builds
