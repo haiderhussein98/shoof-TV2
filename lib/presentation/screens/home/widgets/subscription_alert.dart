@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
@@ -39,7 +40,6 @@ class SubscriptionAlert extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -61,9 +61,7 @@ class SubscriptionAlert extends ConsumerWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -131,30 +129,37 @@ class _FocusElevatedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
+    return PlatformElevatedButton(
       onPressed: onPressed,
-      style:
-          ElevatedButton.styleFrom(
-            backgroundColor: color,
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          ).copyWith(
-            side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
-              if (isAndroid && states.contains(WidgetState.focused)) {
-                return const BorderSide(color: Colors.redAccent, width: 2);
-              }
-              return null;
-            }),
-            elevation: WidgetStateProperty.resolveWith<double?>((states) {
-              if (isAndroid && states.contains(WidgetState.focused)) return 6;
-              return null;
-            }),
-          ),
       child: Text(label),
+      material: (_, __) => MaterialElevatedButtonData(
+        style:
+            ElevatedButton.styleFrom(
+              backgroundColor: color,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            ).copyWith(
+              side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
+                if (isAndroid && states.contains(WidgetState.focused)) {
+                  return const BorderSide(color: Colors.redAccent, width: 2);
+                }
+                return null;
+              }),
+              elevation: WidgetStateProperty.resolveWith<double?>((states) {
+                if (isAndroid && states.contains(WidgetState.focused)) return 6;
+                return null;
+              }),
+            ),
+      ),
+      cupertino: (_, __) => CupertinoElevatedButtonData(
+        color: color,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        borderRadius: BorderRadius.circular(8),
+        minimumSize: const Size(0, 0),
+      ),
     );
   }
 }
 
-/// IconButton قابل للتركيز مع تمييز بصري على Android/TV فقط
 class _FocusableIconButton extends StatefulWidget {
   final bool isAndroid;
   final IconData icon;
@@ -191,12 +196,20 @@ class _FocusableIconButtonState extends State<_FocusableIconButton> {
               ? Border.all(color: Colors.redAccent, width: 2)
               : null,
         ),
-        child: IconButton(
+        child: PlatformIconButton(
           icon: Icon(widget.icon, color: widget.color, size: 20),
           onPressed: () async {
             final uri = Uri.parse(widget.url);
             await launchUrl(uri, mode: LaunchMode.externalApplication);
           },
+          material: (_, __) => MaterialIconButtonData(
+            splashRadius: 20,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          ),
+          cupertino: (_, __) => CupertinoIconButtonData(
+            minimumSize: const Size(0, 0),
+            padding: const EdgeInsets.all(0),
+          ),
         ),
       ),
     );

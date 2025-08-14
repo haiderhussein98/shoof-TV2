@@ -9,6 +9,7 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dart_ping/dart_ping.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 enum ContentType { live, movie, series }
 
@@ -709,8 +710,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     final videoW = 1000.0; // عرض وهمي لاحتساب الحجم داخل FittedBox
     final videoH = videoW / ar;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
+    return PlatformScaffold(
+      // نجعل الخلفية داكنة على كل الأنظمة
+      material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
+      cupertino: (_, __) =>
+          CupertinoPageScaffoldData(backgroundColor: Colors.black),
       body: Focus(
         focusNode: _screenKbFocus,
         onKeyEvent: (node, event) {
@@ -759,8 +763,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       child: VlcPlayer(
                         controller: _vlc,
                         aspectRatio: ar,
-                        placeholder: const Center(
-                          child: CircularProgressIndicator(),
+                        placeholder: Center(
+                          child: PlatformCircularProgressIndicator(),
                         ),
                       ),
                     ),
@@ -768,21 +772,20 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                 ),
               ),
 
-              // ===== مؤشّر الشبكة أعلى اليمين: متجاوب مثل اللوغو ويظهر دائمًا في البث =====
+              // ===== مؤشّر الشبكة أعلى اليمين (LIVE فقط) =====
               if (_isLive)
                 Positioned(
                   right: MediaQuery.of(context).size.width * 0.1,
                   top: MediaQuery.of(context).size.height * 0.05,
                   child: IgnorePointer(
-                    ignoring: true, // للعرض فقط
+                    ignoring: true,
                     child: Builder(
                       builder: (context) {
                         final shortest = MediaQuery.of(
                           context,
                         ).size.shortestSide;
                         final baseLogo = (shortest * 0.12).clamp(48.0, 120.0);
-                        final double iconSize =
-                            baseLogo * 0.38; // مماثل لارتفاع اللوغو
+                        final double iconSize = baseLogo * 0.38;
                         return Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -817,7 +820,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                           child: Container(
                             color: Colors.black45,
                             alignment: Alignment.center,
-                            child: const CircularProgressIndicator(),
+                            child: PlatformCircularProgressIndicator(),
                           ),
                         );
                       },
@@ -863,7 +866,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // أسفل الشاشة: VOD = سلايدر تفاعلي | LIVE = سلايدر شكلي + الوقت الحالي فقط
+              // أسفل الشاشة: VOD = سلايدر | LIVE = شكلي + الوقت
               if (_showControls)
                 Positioned(
                   bottom: 12,
@@ -919,7 +922,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    _formatTime(v.position), // مثال: 2:15 فقط
+                                    _formatTime(v.position),
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ),

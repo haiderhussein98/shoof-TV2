@@ -10,15 +10,21 @@ class SeriesCategoryList extends StatelessWidget {
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
 
-    return ListView.builder(
+    return ListView.separated(
       key: const PageStorageKey('series_category_list'),
       itemCount: categories.length,
       cacheExtent: w > 900 ? 300 : 500,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final category = categories[index];
-        return SeriesCategorySection(
-          categoryId: category['id']!,
-          categoryName: category['name']!,
+
+        return RepaintBoundary(
+          key: ValueKey(category['id']),
+          child: SeriesCategorySection(
+            categoryId: category['id']!,
+            categoryName: category['name']!,
+          ),
         );
       },
     );

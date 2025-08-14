@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shoof_tv/domain/providers/series_providers.dart';
 import '../../../../data/models/series_model.dart';
@@ -183,14 +184,14 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(
-                            Icons.arrow_forward_ios,
+                            context.platformIcons.rightChevron,
                             size: 14,
                             color: Colors.redAccent,
                           ),
-                          SizedBox(width: 6),
-                          Text(
+                          const SizedBox(width: 6),
+                          const Text(
                             "مشاهدة الكل",
                             style: TextStyle(
                               color: Colors.redAccent,

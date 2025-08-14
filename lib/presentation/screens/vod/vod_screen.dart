@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 import 'package:shoof_tv/presentation/screens/vod/widgets/vod_app_bar.dart';
@@ -62,23 +64,40 @@ class _VodScreenState extends ConsumerState<VodScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
+    return PlatformScaffold(
       backgroundColor: Colors.black,
-      appBar: VodAppBar(
-        controller: _searchController,
-        isSearching: _isSearching,
-        onSearch: _onSearch,
-        onClear: _clearSearch,
+      // Use a Material AppBar on Android; for iOS we'll render the header inside the body
+      material: (_, __) => MaterialScaffoldData(
+        appBar: VodAppBar(
+          controller: _searchController,
+          isSearching: _isSearching,
+          onSearch: _onSearch,
+          onClear: _clearSearch,
+        ),
       ),
-      body: _isSearching && _searchResults != null
-          ? VodSearchResultsGrid(
-              key: ValueKey(_searchController.text),
-              searchResults: _searchResults!,
-            )
-          : VodCategoryList(
-              categoriesFuture: _categoriesFuture,
-              screenWidth: screenWidth,
+      cupertino: (_, __) => CupertinoPageScaffoldData(),
+      body: Column(
+        children: [
+          if (isCupertino(context))
+            VodAppBar(
+              controller: _searchController,
+              isSearching: _isSearching,
+              onSearch: _onSearch,
+              onClear: _clearSearch,
             ),
+          Expanded(
+            child: _isSearching && _searchResults != null
+                ? VodSearchResultsGrid(
+                    key: ValueKey(_searchController.text),
+                    searchResults: _searchResults!,
+                  )
+                : VodCategoryList(
+                    categoriesFuture: _categoriesFuture,
+                    screenWidth: screenWidth,
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/providers/core_providers.dart';
 
@@ -18,6 +20,16 @@ class UserInfoCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subscriptionType = ref.watch(subscriptionTypeProvider);
 
+    final personIcon = isCupertino(context)
+        ? CupertinoIcons.person_fill
+        : Icons.person;
+    final activeIcon = isCupertino(context)
+        ? CupertinoIcons.check_mark_circled
+        : Icons.check_circle;
+    final inactiveIcon = isCupertino(context)
+        ? CupertinoIcons.xmark_circle
+        : Icons.cancel;
+
     return Container(
       padding: EdgeInsets.all(isTablet ? 24 : 16),
       decoration: BoxDecoration(
@@ -29,7 +41,7 @@ class UserInfoCard extends ConsumerWidget {
           CircleAvatar(
             backgroundColor: isActive ? Colors.green : Colors.red,
             radius: isTablet ? 32 : 28,
-            child: const Icon(Icons.person, color: Colors.white),
+            child: Icon(personIcon, color: Colors.white),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -41,14 +53,16 @@ class UserInfoCard extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: isTablet ? 20 : 18,
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: isCupertino(context)
+                        ? FontWeight.w700
+                        : FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Icon(
-                      isActive ? Icons.check_circle : Icons.cancel,
+                      isActive ? activeIcon : inactiveIcon,
                       color: isActive ? Colors.green : Colors.red,
                       size: 18,
                     ),
@@ -58,7 +72,9 @@ class UserInfoCard extends ConsumerWidget {
                       style: TextStyle(
                         color: isActive ? Colors.green : Colors.red,
                         fontSize: isTablet ? 16 : 14,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: isCupertino(context)
+                            ? FontWeight.w600
+                            : FontWeight.w600,
                       ),
                     ),
                   ],

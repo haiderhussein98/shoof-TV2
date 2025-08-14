@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/core/responsive.dart';
 import 'package:shoof_tv/domain/providers/live_providers.dart';
@@ -23,7 +24,8 @@ class ChannelTile extends ConsumerWidget {
     void defaultNavigate() {
       final navigator = Navigator.of(context);
       navigator.push(
-        MaterialPageRoute(
+        platformPageRoute(
+          context: context,
           builder: (_) => LivePlayerScreen(
             serverUrl: api.serverUrl,
             username: api.username,
@@ -55,15 +57,10 @@ class ChannelTile extends ConsumerWidget {
       builder: (context, c) {
         final isDesktop = context.isDesktop || context.isTvLike;
         final gap = context.gap;
-
-        // أبعاد وبُعد بصري أهدأ
         final radius = 16.0;
         final cardPad = _clamp(gap, 8, 14);
         final titleSize = _clamp(c.maxWidth * 0.06, 11, isDesktop ? 14 : 13);
         final iconSize = _clamp(c.maxWidth * 0.10, 20, isDesktop ? 26 : 24);
-
-        // بطاقة بعمود: صورة 16:9 ثابتة ثم شريط سفلي مرتب
-        // بدل الـ content القديم، حط التالي داخل LayoutBuilder نفسه:
         final double footerHeight = _clamp(c.maxHeight * 0.22, 44, 56);
         final double padH = _clamp(cardPad, 8, 14);
         final double padV = _clamp(cardPad * 0.6, 6, 10);
@@ -99,8 +96,6 @@ class ChannelTile extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // الفوتر: ارتفاع محسوب من ارتفاع البطاقة الفعلي
             SizedBox(
               height: footerHeight,
               child: Padding(
@@ -150,7 +145,6 @@ class ChannelTile extends ConsumerWidget {
             onTap: onTap ?? defaultNavigate,
             splashColor: Colors.white10,
             highlightColor: Colors.black.withValues(alpha: 0.30),
-
             child: content,
           ),
         );

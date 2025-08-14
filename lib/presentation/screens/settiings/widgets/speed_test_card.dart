@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class SpeedTestCard extends StatefulWidget {
   const SpeedTestCard({super.key});
@@ -276,20 +277,37 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     const SizedBox(width: 6),
                     SizedBox(
                       height: 36,
-                      child: TextButton.icon(
+                      child: PlatformElevatedButton(
                         onPressed: _testing ? null : _runTest,
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: Text(narrow ? 'إعادة' : 'إعادة الاختبار'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.refresh, size: 18),
+                            SizedBox(width: 6),
+                            Text('إعادة الاختبار'),
+                          ],
+                        ),
+                        material: (_, __) => MaterialElevatedButtonData(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.white10,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: narrow ? 10 : 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                        cupertino: (_, __) => CupertinoElevatedButtonData(
                           padding: EdgeInsets.symmetric(
                             horizontal: narrow ? 10 : 12,
                             vertical: 8,
                           ),
-                          backgroundColor: Colors.white10,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          borderRadius: BorderRadius.circular(10),
+                          minimumSize: const Size(0, 36),
                         ),
                       ),
                     ),
@@ -317,8 +335,15 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                                   SizedBox(
                                     width: sizes.label + 6,
                                     height: sizes.label + 6,
-                                    child: const CircularProgressIndicator(
-                                      strokeWidth: 2,
+                                    child: PlatformCircularProgressIndicator(
+                                      material: (_, __) =>
+                                          MaterialProgressIndicatorData(
+                                            strokeWidth: 2,
+                                          ),
+                                      cupertino: (_, __) =>
+                                          CupertinoProgressIndicatorData(
+                                            radius: 10,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(width: 10),

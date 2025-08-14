@@ -58,6 +58,7 @@ dependencies:
   window_manager: ^0.5.1
   msix: ^3.16.7
   device_info_plus: ^11.5.0
+  flutter_platform_widgets: ^9.0.0
 
   
  

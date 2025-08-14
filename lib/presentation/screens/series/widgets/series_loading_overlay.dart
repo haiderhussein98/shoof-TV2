@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class SeriesLoadingOverlay extends StatelessWidget {
@@ -31,10 +32,10 @@ class SeriesLoadingOverlay extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 12),
-                    Text(
+                  children: [
+                    const PlatformCircularProgressIndicator(),
+                    const SizedBox(height: 12),
+                    const Text(
                       'جاري التحميل...',
                       style: TextStyle(color: Colors.white70),
                     ),

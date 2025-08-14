@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/data/models/channel_model.dart';
 import 'package:shoof_tv/presentation/screens/live/widgets/channel_tile.dart';
 
@@ -51,6 +52,9 @@ class LiveChannelsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final o = MediaQuery.of(context).orientation;
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -85,6 +89,7 @@ class LiveChannelsGrid extends StatelessWidget {
 
               return GridView.builder(
                 controller: scrollController,
+                physics: physics,
                 padding: const EdgeInsets.all(8),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,

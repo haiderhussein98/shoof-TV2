@@ -8,7 +8,6 @@ import 'package:shoof_tv/presentation/screens/home/widgets/custom_navigation_bar
 import 'package:shoof_tv/presentation/screens/home/widgets/custom_navigation_rail.dart';
 import 'package:shoof_tv/presentation/screens/home/widgets/subscription_alert.dart';
 import 'package:shoof_tv/presentation/viewmodels/auth_provider.dart';
-
 import '../live/live_screen.dart';
 import '../vod/vod_screen.dart';
 import '../series/series_screen.dart';
@@ -106,10 +105,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.listen<int>(homeIndexProvider, (prev, next) {
       if (!mounted) return;
       if (!_pageController.hasClients) return;
-
       final current = _pageController.page?.round();
       if (current == next) return;
-
       _pageController.animateToPage(
         next,
         duration: const Duration(milliseconds: 300),

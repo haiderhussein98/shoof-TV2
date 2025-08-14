@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
-class LiveAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const LiveAppBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: const Text("Live Channels", style: TextStyle(fontSize: 15)),
-      backgroundColor: Colors.black,
-      actions: const [
-        Padding(
-          padding: EdgeInsets.only(right: 15.0),
-          child: Image(image: AssetImage('assets/images/logo.png')),
+class LiveAppBar extends PlatformAppBar {
+  LiveAppBar({super.key})
+    : super(
+        title: const Text("Live Channels", style: TextStyle(fontSize: 15)),
+        material: (_, __) => MaterialAppBarData(
+          backgroundColor: Colors.black,
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 15.0),
+              child: Image(image: AssetImage('assets/images/logo.png')),
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+        cupertino: (_, __) => CupertinoNavigationBarData(
+          backgroundColor: Colors.black,
+          trailing: const Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: Image(image: AssetImage('assets/images/logo.png')),
+          ),
+        ),
+      );
 }

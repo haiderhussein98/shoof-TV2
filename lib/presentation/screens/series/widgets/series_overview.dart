@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/data/models/series_model.dart';
 
 class SeriesOverviewTitle extends StatelessWidget {
@@ -6,12 +7,22 @@ class SeriesOverviewTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      "تفاصيل المسلسل",
-      style: TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
+    return PlatformWidget(
+      material: (_, __) => const Text(
+        "تفاصيل المسلسل",
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+      cupertino: (_, __) => const Text(
+        "تفاصيل المسلسل",
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 16,
+        ),
       ),
     );
   }
@@ -42,6 +53,7 @@ class SeriesOverviewText extends StatelessWidget {
         child: RichText(
           text: TextSpan(
             children: [
+              const TextSpan(text: ""),
               TextSpan(
                 text: "$title: ",
                 style: const TextStyle(
@@ -76,25 +88,51 @@ class SeriesOverviewText extends StatelessWidget {
           )
         : const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (overviewWidget is! SizedBox) ...[
-          const Text(
-            "القصة:",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          overviewWidget,
-          const SizedBox(height: 10),
+    return PlatformWidget(
+      material: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (overviewWidget is! SizedBox) ...[
+            const Text(
+              "القصة:",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            overviewWidget,
+            const SizedBox(height: 10),
+          ],
+          line("النوع", genre),
+          line("المخرج", director),
+          line("الأبطال", cast),
+          line("التقييم", rating),
+          line("تاريخ الإصدار", release),
         ],
-
-        line("النوع", genre),
-        line("المخرج", director),
-        line("الأبطال", cast),
-        line("التقييم", rating),
-        line("تاريخ الإصدار", release),
-      ],
+      ),
+      cupertino: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (overviewWidget is! SizedBox) ...[
+            const Text(
+              "القصة:",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            overviewWidget,
+            const SizedBox(height: 10),
+          ],
+          line("النوع", genre),
+          line("المخرج", director),
+          line("الأبطال", cast),
+          line("التقييم", rating),
+          line("تاريخ الإصدار", release),
+        ],
+      ),
     );
   }
 }

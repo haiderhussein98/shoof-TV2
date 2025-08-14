@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import 'package:shoof_tv/presentation/screens/vod/category_movies_screen.dart';
 import 'package:shoof_tv/presentation/screens/vod/movie_details_screen.dart';
@@ -149,7 +150,9 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
               future: moviesFuture,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: PlatformCircularProgressIndicator(),
+                  );
                 }
 
                 final movies = snapshot.data!;
@@ -285,7 +288,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                                             color: Colors.black12,
                                             child: Center(
                                               child:
-                                                  CircularProgressIndicator(),
+                                                  PlatformCircularProgressIndicator(),
                                             ),
                                           ),
                                       errorWidget: (context, url, error) =>
@@ -299,11 +302,15 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                                         color: Colors.black.withValues(
                                           alpha: 0.35,
                                         ),
-                                        child: const Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: CircularProgressIndicator(
-                                            color: Colors.redAccent,
-                                          ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child:
+                                              PlatformCircularProgressIndicator(
+                                                material: (_, __) =>
+                                                    MaterialProgressIndicatorData(
+                                                      color: Colors.redAccent,
+                                                    ),
+                                              ),
                                         ),
                                       ),
                                   ],
@@ -383,14 +390,14 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Icon(
-                      Icons.arrow_forward_ios,
+                      context.platformIcons.rightChevron,
                       size: 14,
                       color: Colors.redAccent,
                     ),
-                    SizedBox(width: 6),
-                    Text(
+                    const SizedBox(width: 6),
+                    const Text(
                       "مشاهدة الكل",
                       style: TextStyle(
                         color: Colors.redAccent,

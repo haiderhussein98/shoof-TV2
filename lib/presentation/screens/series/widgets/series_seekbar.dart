@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class SeriesSeekbar extends StatelessWidget {
   final Duration position;
@@ -16,6 +18,13 @@ class SeriesSeekbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int posSec = position.inSeconds;
+    final int maxSec = duration.inSeconds > 0
+        ? duration.inSeconds
+        : (posSec + 1);
+    final double value = posSec.clamp(0, maxSec).toDouble();
+    final double max = maxSec.toDouble();
+
     return Positioned(
       left: 0,
       right: 0,
@@ -24,22 +33,30 @@ class SeriesSeekbar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
         child: Column(
           children: [
-            Slider(
-              value: position.inSeconds.toDouble(),
-              max:
-                  (duration.inSeconds > 0
-                          ? duration.inSeconds
-                          : position.inSeconds + 1)
-                      .toDouble(),
-              onChanged: duration.inSeconds > 0
-                  ? (v) => onSeek(v.toInt())
-                  : null,
+            PlatformWidget(
+              material: (_, __) => Slider(
+                value: value,
+                max: max,
+                onChanged: duration.inSeconds > 0
+                    ? (v) => onSeek(v.toInt())
+                    : null,
+                activeColor: Colors.redAccent,
+              ),
+              cupertino: (_, __) => CupertinoSlider(
+                value: value,
+                min: 0,
+                max: max,
+                onChanged: duration.inSeconds > 0
+                    ? (v) => onSeek(v.toInt())
+                    : null,
+                activeColor: Colors.redAccent,
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  formatTime(position),
+                  formatTime(Duration(seconds: value.toInt())),
                   style: const TextStyle(color: Colors.white),
                 ),
                 Text(

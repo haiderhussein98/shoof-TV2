@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:shoof_tv/domain/providers/series_providers.dart';
 import '../../../data/models/series_model.dart';
 import 'series_details_screen.dart';
@@ -138,18 +140,31 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
       return 3;
     }
 
-    return Scaffold(
-      appBar: AppBar(
+    return PlatformScaffold(
+      backgroundColor: Colors.black,
+      appBar: PlatformAppBar(
         title: Text(widget.categoryName, style: const TextStyle(fontSize: 12)),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 15.0),
+        material: (_, __) => MaterialAppBarData(
+          backgroundColor: Colors.black,
+          actions: const [
+            Padding(
+              padding: EdgeInsets.only(right: 15.0),
+              child: Image(image: AssetImage('assets/images/logo.png')),
+            ),
+          ],
+          elevation: 0,
+        ),
+        cupertino: (_, __) => CupertinoNavigationBarData(
+          backgroundColor: Colors.black,
+          trailing: const Padding(
+            padding: EdgeInsets.only(right: 8.0),
             child: Image(image: AssetImage('assets/images/logo.png')),
           ),
-        ],
-        backgroundColor: Colors.black,
+        ),
       ),
-      backgroundColor: Colors.black,
+      material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
+      cupertino: (_, __) =>
+          CupertinoPageScaffoldData(backgroundColor: Colors.black),
       body: SafeArea(
         child: Column(
           children: [

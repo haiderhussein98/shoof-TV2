@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shoof_tv/data/models/movie_model.dart.dart';
 import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
-import '../../../../data/models/movie_model.dart.dart';
 import '../movie_details_screen.dart';
 
 class VodSearchResultsGrid extends ConsumerStatefulWidget {
@@ -84,7 +85,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
       future: widget.searchResults,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: PlatformCircularProgressIndicator());
         }
 
         final results = snapshot.data!;
@@ -121,9 +122,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
 
             return FocusableActionDetector(
               focusNode: focusNode,
-              // تركيز تلقائي فقط على TV
               autofocus: isTv && index == 0,
-              // اختصارات الريموت فقط على TV
               shortcuts: isTv
                   ? const {
                       SingleActivator(LogicalKeyboardKey.select):
@@ -165,8 +164,9 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
                         child: CachedNetworkImage(
                           imageUrl: movie.streamIcon,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              const Center(child: CircularProgressIndicator()),
+                          placeholder: (context, url) => const Center(
+                            child: PlatformCircularProgressIndicator(),
+                          ),
                           errorWidget: (context, url, error) =>
                               const Icon(Icons.error, color: Colors.red),
                         ),
@@ -179,9 +179,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
                           ),
                           child: const Padding(
                             padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(
-                              color: Colors.redAccent,
-                            ),
+                            child: PlatformCircularProgressIndicator(),
                           ),
                         ),
                     ],

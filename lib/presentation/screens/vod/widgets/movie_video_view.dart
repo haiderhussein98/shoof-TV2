@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class MovieVideoView extends StatelessWidget {
@@ -19,12 +20,13 @@ class MovieVideoView extends StatelessWidget {
           final maxW = constraints.maxWidth;
           final maxH = constraints.maxHeight;
 
-          // لو الـ aspectRatio غير صالح، اعرضه كما هو لملء المساحة
           if (aspectRatio <= 0 || aspectRatio.isNaN) {
             return VlcPlayer(
               controller: controller,
               aspectRatio: maxW / maxH,
-              placeholder: const Center(child: CircularProgressIndicator()),
+              placeholder: const Center(
+                child: PlatformCircularProgressIndicator(),
+              ),
             );
           }
 
@@ -50,7 +52,9 @@ class MovieVideoView extends StatelessWidget {
                 child: VlcPlayer(
                   controller: controller,
                   aspectRatio: videoAR,
-                  placeholder: const Center(child: CircularProgressIndicator()),
+                  placeholder: const Center(
+                    child: PlatformCircularProgressIndicator(),
+                  ),
                 ),
               ),
             ),

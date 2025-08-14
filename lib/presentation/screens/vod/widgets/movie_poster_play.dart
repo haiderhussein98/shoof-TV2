@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class MoviePosterPlay extends StatelessWidget {
   final String imageUrl;
@@ -16,6 +18,10 @@ class MoviePosterPlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final playIcon = isCupertino(context)
+        ? CupertinoIcons.play_fill
+        : Icons.play_arrow_rounded;
+
     return Stack(
       children: [
         ClipRRect(
@@ -37,23 +43,24 @@ class MoviePosterPlay extends StatelessWidget {
         ),
 
         Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onPlay,
-              child: const Center(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black45,
-                    shape: BoxShape.circle,
+          child: Center(
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                color: Colors.black45,
+                shape: BoxShape.circle,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: PlatformIconButton(
+                  icon: Icon(playIcon, color: Colors.white, size: 48),
+                  onPressed: onPlay,
+                  material: (_, __) => MaterialIconButtonData(
+                    splashRadius: 32,
+                    constraints: BoxConstraints(minWidth: 0, minHeight: 0),
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: 48,
-                    ),
+                  cupertino: (_, __) => CupertinoIconButtonData(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size(0, 0),
                   ),
                 ),
               ),

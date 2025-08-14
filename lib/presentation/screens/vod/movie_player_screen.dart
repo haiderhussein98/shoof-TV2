@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/widgets/universal_player_desktop.dart';
 import 'package:shoof_tv/presentation/widgets/universal_player_mobile.dart';
 
@@ -17,16 +18,20 @@ class MoviePlayerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: _isDesktop
-          ? UniversalPlayerDesktop.movie(title: title, movieUrl: url)
-          : UniversalPlayerMobile(
-              type: ContentType.movie,
-              title: title,
-              url: url,
-              logo: Image.asset('assets/images/logo.png', width: 40),
-            ),
+    final body = _isDesktop
+        ? UniversalPlayerDesktop.movie(title: title, movieUrl: url)
+        : UniversalPlayerMobile(
+            type: ContentType.movie,
+            title: title,
+            url: url,
+            logo: Image.asset('assets/images/logo.png', width: 40),
+          );
+
+    return PlatformScaffold(
+      material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
+      cupertino: (_, __) =>
+          CupertinoPageScaffoldData(backgroundColor: Colors.black),
+      body: body,
     );
   }
 }

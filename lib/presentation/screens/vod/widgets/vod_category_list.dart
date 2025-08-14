@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/screens/vod/widgets/category_section.dart';
 
 class VodCategoryList extends StatefulWidget {
@@ -24,15 +25,20 @@ class _VodCategoryListState extends State<VodCategoryList> {
 
   @override
   Widget build(BuildContext context) {
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
     return FutureBuilder<List<Map<String, String>>>(
       future: widget.categoriesFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: PlatformCircularProgressIndicator());
         }
 
         final categories = snapshot.data!;
         return ListView.builder(
+          physics: physics,
           itemCount: categories.length,
           itemBuilder: (context, index) {
             final category = categories[index];

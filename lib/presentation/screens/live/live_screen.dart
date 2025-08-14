@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/domain/providers/live_providers.dart';
 import 'package:shoof_tv/presentation/screens/live/live_player_screen.dart';
 import 'package:shoof_tv/presentation/screens/live/viewmodel/live_viewmodel.dart';
@@ -23,14 +24,12 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
   final ScrollController _categoryScrollController = ScrollController();
   final ScrollController _scrollController = ScrollController();
 
-  /// مهم: لا نعيد إنشاء المفاتيح عند كل build.
   List<GlobalKey> _categoryKeys = [];
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    // تهيئة البيانات مرة واحدة بعد الإطار الأول.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(liveViewModelProvider.notifier).initialize();
     });
@@ -53,7 +52,6 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         .read(liveViewModelProvider.notifier)
         .fetchChannelsByCategory(categoryId);
 
-    // تمرير Scroll ليظهر التصنيف المحدد في المنتصف تقريبًا.
     final index = ref
         .read(liveViewModelProvider)
         .categories
@@ -82,24 +80,15 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
     final api = ref.read(liveServiceProvider);
     if (!mounted) return;
     Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => LivePlayerScreen(
+      platformPageRoute(
+        context: context,
+        builder: (_) => LivePlayerScreen(
           serverUrl: api.serverUrl,
           username: api.username,
           password: api.password,
           streamId: channel.streamId,
           title: channel.name,
         ),
-        transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.98, end: 1.0).animate(animation),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }
@@ -118,7 +107,6 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
     final state = ref.watch(liveViewModelProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    // حدّث قائمة المفاتيح فقط عند تغيّر طول التصنيفات.
     if (_categoryKeys.length != state.categories.length) {
       _categoryKeys = List.generate(
         state.categories.length,
@@ -126,8 +114,8 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: const LiveAppBar(),
+    return PlatformScaffold(
+      appBar: LiveAppBar(),
       backgroundColor: Colors.black,
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())

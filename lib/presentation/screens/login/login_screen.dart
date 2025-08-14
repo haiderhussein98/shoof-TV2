@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/screens/login/login_form.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -6,9 +7,15 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
+    return PlatformScaffold(
       backgroundColor: Colors.black,
-      resizeToAvoidBottomInset: true,
+      material: (_, __) => MaterialScaffoldData(resizeToAvoidBottomInset: true),
+      cupertino: (_, __) =>
+          CupertinoPageScaffoldData(resizeToAvoidBottomInset: true),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -18,6 +25,7 @@ class LoginScreen extends StatelessWidget {
               curve: Curves.easeOut,
               padding: EdgeInsets.only(bottom: bottomInset),
               child: SingleChildScrollView(
+                physics: physics,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 24,

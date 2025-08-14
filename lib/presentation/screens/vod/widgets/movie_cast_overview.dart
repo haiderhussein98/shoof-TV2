@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class MovieCastOverview extends StatelessWidget {
   final String? cast;
@@ -12,13 +13,15 @@ class MovieCastOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fw = isCupertino(context) ? FontWeight.w700 : FontWeight.bold;
+
     final widgets = <Widget>[];
 
     if (cast != null && cast!.isNotEmpty) {
       widgets.addAll([
-        const Text(
+        Text(
           "Cast:",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: fw),
         ),
         const SizedBox(height: 4),
         Text(cast!, style: const TextStyle(color: Colors.white70)),
@@ -28,9 +31,9 @@ class MovieCastOverview extends StatelessWidget {
 
     if (overview != null && overview!.isNotEmpty) {
       widgets.addAll([
-        const Text(
+        Text(
           "Overview:",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: fw),
         ),
         const SizedBox(height: 4),
         Text(overview!, style: const TextStyle(color: Colors.white70)),

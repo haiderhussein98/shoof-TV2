@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/presentation/screens/vod/movie_details_screen.dart';
 import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 
@@ -34,7 +35,8 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
 
           await Navigator.push(
             context,
-            MaterialPageRoute(
+            platformPageRoute(
+              context: context,
               builder: (_) => MovieDetailsScreen(movie: movieDetails),
             ),
           );
@@ -60,7 +62,7 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
               imageUrl: widget.movie.streamIcon,
               fit: BoxFit.cover,
               placeholder: (context, url) =>
-                  const Center(child: CircularProgressIndicator()),
+                  const Center(child: PlatformCircularProgressIndicator()),
               errorWidget: (context, url, error) =>
                   const Icon(Icons.error, color: Colors.red),
             ),
@@ -73,7 +75,7 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
               ),
               child: const Padding(
                 padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(color: Colors.redAccent),
+                child: PlatformCircularProgressIndicator(),
               ),
             ),
         ],

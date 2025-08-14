@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class SubscriptionInfoCard extends StatelessWidget {
   final String startDate;
@@ -23,17 +25,37 @@ class SubscriptionInfoCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildBox(Icons.calendar_today, 'تاريخ البداية', startDate),
-          _buildBox(Icons.event, 'تاريخ الانتهاء', endDate),
+          _buildBox(
+            context,
+            materialIcon: Icons.calendar_today,
+            cupertinoIcon: CupertinoIcons.calendar,
+            title: 'تاريخ البداية',
+            value: startDate,
+          ),
+          _buildBox(
+            context,
+            materialIcon: Icons.event,
+            cupertinoIcon: CupertinoIcons.calendar,
+            title: 'تاريخ الانتهاء',
+            value: endDate,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildBox(IconData icon, String title, String value) {
+  Widget _buildBox(
+    BuildContext context, {
+    required IconData materialIcon,
+    required IconData cupertinoIcon,
+    required String title,
+    required String value,
+  }) {
+    final iconData = isCupertino(context) ? cupertinoIcon : materialIcon;
+
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: isTablet ? 28 : 22),
+        Icon(iconData, color: Colors.white70, size: isTablet ? 28 : 22),
         const SizedBox(height: 6),
         Text(
           title,

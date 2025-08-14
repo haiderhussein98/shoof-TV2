@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shoof_tv/core/constants/colors.dart';
@@ -31,7 +32,6 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
   void initState() {
     super.initState();
     api = ref.read(seriesServiceProvider);
-
     _episodesFuture = api.getSeriesInfo(widget.series.seriesId).catchError((e) {
       return <String, List<Map<String, dynamic>>>{};
     });
@@ -72,8 +72,9 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
   }) {
     if (!mounted || _disposed) return;
     Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => SeriesPlayerScreen(
+      platformPageRoute(
+        context: context,
+        builder: (_) => SeriesPlayerScreen(
           serverUrl: api.serverUrl,
           username: api.username,
           password: api.password,
@@ -83,8 +84,6 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
               : 'mkv',
           title: episodeName,
         ),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
       ),
     );
   }
@@ -98,18 +97,23 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final series = widget.series;
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
 
-    return Scaffold(
+    return PlatformScaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
+      appBar: PlatformAppBar(
         title: Text(series.name, style: const TextStyle(fontSize: 15)),
-        backgroundColor: Colors.black,
+        material: (_, __) => MaterialAppBarData(backgroundColor: Colors.black),
+        cupertino: (_, __) =>
+            CupertinoNavigationBarData(backgroundColor: Colors.black),
       ),
       body: FutureBuilder<Map<String, List<Map<String, dynamic>>>>(
         future: _episodesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: PlatformCircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -148,10 +152,8 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
                   coverUrl: series.cover,
                   onPlayFirst: () {
                     if (!mounted || _disposed) return;
-
                     final firstSeason = episodesBySeason.entries.first;
                     final firstEpisode = firstSeason.value.first;
-
                     final id = int.tryParse(firstEpisode['id'].toString()) ?? 0;
                     final name = (firstEpisode['title'] ?? '').toString();
                     final ext =
@@ -159,7 +161,6 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
                                 firstEpisode['containerExtension'] ??
                                 '')
                             .toString();
-
                     _playEpisode(
                       context: context,
                       episodeId: id,
@@ -206,6 +207,7 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
               );
 
               return SingleChildScrollView(
+                physics: physics,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,18 +226,14 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
                       const SizedBox(height: 16),
                       titleAndMeta,
                     ],
-
                     const SizedBox(height: 28),
-
                     SeasonExpansionList(
                       episodesBySeason: episodesBySeason,
                       titleColor: AppColors.primaryRed,
                       onPlayEpisode: (episodeId, episodeName) {
                         if (!mounted || _disposed) return;
-
                         final id = int.tryParse(episodeId.toString()) ?? 0;
                         final ext = _findContainerExt(episodesBySeason, id);
-
                         _playEpisode(
                           context: context,
                           episodeId: id,

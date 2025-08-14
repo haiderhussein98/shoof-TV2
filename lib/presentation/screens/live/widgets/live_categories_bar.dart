@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class LiveCategoriesBar extends StatefulWidget {
   final List<Map<String, String>> categories;
@@ -57,7 +58,6 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
       final total = (widget.categories.length - 1).clamp(1, 9999);
       final fraction = index / total;
       final target = widget.controller.position.maxScrollExtent * fraction;
-
       try {
         await widget.controller.animateTo(
           target,
@@ -84,6 +84,10 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
 
   @override
   Widget build(BuildContext context) {
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
     return SizedBox(
       height: 45,
       child: ScrollConfiguration(
@@ -117,6 +121,7 @@ class _LiveCategoriesBarState extends State<LiveCategoriesBar> {
             thumbVisibility: true,
             child: ListView.builder(
               controller: widget.controller,
+              physics: physics,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 8),
               cacheExtent: 1000,

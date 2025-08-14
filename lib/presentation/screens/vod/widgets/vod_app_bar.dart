@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
   final TextEditingController controller;
@@ -27,27 +28,87 @@ class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isRtl = _isRTL(context);
 
-    return AppBar(
-      backgroundColor: Colors.black,
-      title: const Text("Movies", style: TextStyle(fontSize: 15)),
-      actions: const [
-        Padding(
-          padding: EdgeInsets.only(right: 15.0),
-          child: Image(image: AssetImage('assets/images/logo.png')),
+    return PlatformWidget(
+      material: (_, __) => AppBar(
+        backgroundColor: Colors.black,
+        title: const Text("Movies", style: TextStyle(fontSize: 15)),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 15.0),
+            child: Image(image: AssetImage('assets/images/logo.png')),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            child: Directionality(
+              textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
+              child: _VodSearchField(
+                controller: controller,
+                isSearching: isSearching,
+                isRtl: isRtl,
+                onSearch: onSearch,
+                onClear: onClear,
+              ),
+            ),
+          ),
         ),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(50),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-          child: Directionality(
-            textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
-            child: _VodSearchField(
-              controller: controller,
-              isSearching: isSearching,
-              isRtl: isRtl,
-              onSearch: onSearch,
-              onClear: onClear,
+      ),
+      cupertino: (_, __) => SizedBox(
+        height: preferredSize.height,
+        child: ColoredBox(
+          color: Colors.black,
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // Top nav row (Cupertino style)
+                SizedBox(
+                  height: kToolbarHeight,
+                  child: Row(
+                    children: const [
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          "Movies",
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(right: 15.0),
+                        child: Image(
+                          image: AssetImage('assets/images/logo.png'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Search field
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12.0,
+                    vertical: 8,
+                  ),
+                  child: Directionality(
+                    textDirection: isRtl
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
+                    child: _VodSearchField(
+                      controller: controller,
+                      isSearching: isSearching,
+                      isRtl: isRtl,
+                      onSearch: onSearch,
+                      onClear: onClear,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -111,7 +172,6 @@ class _VodSearchFieldState extends State<_VodSearchField> {
   }
 
   KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
-    // منطق الريموت يعمل فقط على Android TV
     final isTv = _isAndroidTv(context);
     if (!isTv) return KeyEventResult.ignored;
 
@@ -166,7 +226,6 @@ class _VodSearchFieldState extends State<_VodSearchField> {
       child: TextField(
         focusNode: _focusNode,
         controller: widget.controller,
-        // على Android TV فقط يكون readOnly إلى أن يضغط المستخدم Enter/OK
         readOnly: isTv ? !_editing : false,
         showCursor: isTv ? _editing : true,
         enableInteractiveSelection: isTv ? _editing : true,

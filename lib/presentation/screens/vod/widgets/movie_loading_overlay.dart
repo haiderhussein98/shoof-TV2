@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class MovieLoadingOverlay extends StatelessWidget {
@@ -32,7 +33,7 @@ class MovieLoadingOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
-                    CircularProgressIndicator(),
+                    PlatformCircularProgressIndicator(),
                     SizedBox(height: 12),
                     Text(
                       'جاري التحميل...',

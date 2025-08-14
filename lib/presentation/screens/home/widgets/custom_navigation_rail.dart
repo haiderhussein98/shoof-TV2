@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/presentation/screens/home/viewmodel/home_viewmodel.dart';
 
@@ -11,74 +13,34 @@ class CustomNavigationRail extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final index = ref.watch(homeIndexProvider);
 
-    const mainItems = [
-      _RailItem(icon: Icons.live_tv, label: 'Live', tabIndex: 0),
-      _RailItem(icon: Icons.movie, label: 'Movies', tabIndex: 1),
-      _RailItem(icon: Icons.tv, label: 'Series', tabIndex: 2),
+    final liveIcon = isCupertino(context) ? CupertinoIcons.tv : Icons.live_tv;
+    final moviesIcon = isCupertino(context) ? CupertinoIcons.film : Icons.movie;
+    final seriesIcon = isCupertino(context)
+        ? CupertinoIcons.tv_music_note
+        : Icons.tv;
+    final settingsIcon = isCupertino(context)
+        ? CupertinoIcons.gear_alt
+        : Icons.settings;
+
+    final mainItems = [
+      _RailItem(icon: liveIcon, label: 'Live', tabIndex: 0),
+      _RailItem(icon: moviesIcon, label: 'Movies', tabIndex: 1),
+      _RailItem(icon: seriesIcon, label: 'Series', tabIndex: 2),
     ];
 
-    const settingsItem = _RailItem(
-      icon: Icons.settings,
+    final settingsItem = _RailItem(
+      icon: settingsIcon,
       label: 'Settings',
       tabIndex: 3,
     );
 
     return SizedBox(
       width: _railWidth,
-      child: ColoredBox(
+      child: const ColoredBox(
         color: Colors.black,
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            const SizedBox(height: 12),
-
-            const SizedBox(height: 40, width: 40),
-
-            const SizedBox(height: 8),
-
-            const SizedBox(height: 8),
-
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                removeBottom: true,
-                child: ListView.separated(
-                  padding: EdgeInsets.zero,
-                  physics: const ClampingScrollPhysics(),
-                  itemCount: mainItems.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 4),
-                  itemBuilder: (context, i) {
-                    final item = mainItems[i];
-                    final selected = index == item.tabIndex;
-                    return _RailTile(
-                      width: _railWidth,
-                      icon: item.icon,
-                      label: item.label,
-                      selected: selected,
-                      onTap: () => ref.read(homeIndexProvider.notifier).state =
-                          item.tabIndex,
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            SafeArea(
-              top: false,
-              child: _RailTile(
-                width: _railWidth,
-                icon: settingsItem.icon,
-                label: settingsItem.label,
-                selected: index == settingsItem.tabIndex,
-                onTap: () => ref.read(homeIndexProvider.notifier).state =
-                    settingsItem.tabIndex,
-              ),
-            ),
-          ],
-        ),
+        child: _RailContent(railWidth: _railWidth),
       ),
-    );
+    )._withContent(context, ref, index, mainItems, settingsItem);
   }
 }
 
@@ -91,6 +53,90 @@ class _RailItem {
     required this.label,
     required this.tabIndex,
   });
+}
+
+class _RailContent extends StatelessWidget {
+  final double railWidth;
+  const _RailContent({required this.railWidth});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.shrink();
+  }
+}
+
+extension _RailBuilder on Widget {
+  Widget _withContent(
+    BuildContext context,
+    WidgetRef ref,
+    int index,
+    List<_RailItem> mainItems,
+    _RailItem settingsItem,
+  ) {
+    return LayoutBuilder(
+      builder: (ctx, _) {
+        final sized = this as SizedBox;
+        final width = sized.width!;
+
+        return SizedBox(
+          width: width,
+          child: ColoredBox(
+            color: Colors.black,
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                const SizedBox(height: 12),
+
+                const SizedBox(height: 40, width: 40),
+
+                const SizedBox(height: 8),
+                const SizedBox(height: 8),
+
+                Expanded(
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    removeBottom: true,
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: mainItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 4),
+                      itemBuilder: (context, i) {
+                        final item = mainItems[i];
+                        final selected = index == item.tabIndex;
+                        return _RailTile(
+                          width: width,
+                          icon: item.icon,
+                          label: item.label,
+                          selected: selected,
+                          onTap: () =>
+                              ref.read(homeIndexProvider.notifier).state =
+                                  item.tabIndex,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                SafeArea(
+                  top: false,
+                  child: _RailTile(
+                    width: width,
+                    icon: settingsItem.icon,
+                    label: settingsItem.label,
+                    selected: index == settingsItem.tabIndex,
+                    onTap: () => ref.read(homeIndexProvider.notifier).state =
+                        settingsItem.tabIndex,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _RailTile extends StatelessWidget {

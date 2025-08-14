@@ -29,29 +29,31 @@ class SeriesPlayerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_isDesktop) {
-      return UniversalPlayerDesktop.series(
-        title: title,
-        serverUrlSeries: serverUrl,
-        passwordSeries: password,
-        usernameSeries: username,
-        episodeId: episodeId,
-        containerExtension: containerExtension,
-      );
-    } else {
-      final cleanServer = serverUrl.replaceAll(RegExp(r'^https?://'), '');
-      final url =
-          'http://$cleanServer/series/'
-          '${Uri.encodeComponent(username)}/'
-          '${Uri.encodeComponent(password)}/'
-          '$episodeId.$containerExtension';
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: _isDesktop
+          ? UniversalPlayerDesktop.series(
+              title: title,
+              serverUrlSeries: serverUrl,
+              usernameSeries: username,
+              passwordSeries: password,
+              episodeId: episodeId,
+              containerExtension: containerExtension,
+            )
+          : UniversalPlayerMobile(
+              type: ContentType.series,
+              title: title,
+              url: _buildSeriesUrl(),
+              logo: Image.asset('assets/images/logo.png', width: 40),
+            ),
+    );
+  }
 
-      return UniversalPlayerMobile(
-        type: ContentType.series,
-        title: title,
-        url: url,
-        logo: Image.asset('assets/images/logo.png', width: 40),
-      );
-    }
+  String _buildSeriesUrl() {
+    final cleanServer = serverUrl.replaceAll(RegExp(r'^https?://'), '');
+    return 'http://$cleanServer/series/'
+        '${Uri.encodeComponent(username)}/'
+        '${Uri.encodeComponent(password)}/'
+        '$episodeId.$containerExtension';
   }
 }

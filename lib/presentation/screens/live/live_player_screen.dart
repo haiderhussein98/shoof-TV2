@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/widgets/universal_player_desktop.dart';
 import 'package:shoof_tv/presentation/widgets/universal_player_mobile.dart';
 
@@ -35,8 +36,11 @@ class LivePlayerScreen extends StatelessWidget {
         password: password,
         streamId: streamId,
       );
-    } else {
-      return UniversalPlayerMobile(
+    }
+
+    return PlatformScaffold(
+      backgroundColor: Colors.black,
+      body: UniversalPlayerMobile(
         type: ContentType.live,
         title: title,
         serverUrl: serverUrl,
@@ -44,7 +48,7 @@ class LivePlayerScreen extends StatelessWidget {
         password: password,
         streamId: streamId,
         logo: Image.asset('assets/images/logo.png', width: 40),
-      );
-    }
+      ),
+    );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/usecases/login_user.dart';
 import 'package:shoof_tv/presentation/screens/home/home_screen.dart';
@@ -34,7 +35,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     super.dispose();
   }
 
-  Future<void> _submit(BuildContext context) async {
+  Future<void> _submit() async {
     setState(() {
       loading = true;
       error = null;
@@ -47,14 +48,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       password: passwordController.text.trim(),
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return; // guard State.context after async gap
 
     setState(() => loading = false);
 
     if (ok) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacement(
+        platformPageRoute(context: context, builder: (_) => const HomeScreen()),
+      );
     } else {
       setState(() => error = "تعذر تسجيل الدخول. تحقق من المعلومات.");
     }
@@ -106,7 +107,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             obscureText: true,
             focusNode: _passwordFocus,
             textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(context),
+            onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 18),
 
@@ -114,15 +115,22 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ? const CircularProgressIndicator()
               : SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _submit(context),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: PlatformElevatedButton(
+                    onPressed: _submit,
+                    child: const Text("ADD PLAYLIST"),
+                    material: (_, __) => MaterialElevatedButtonData(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
-                    child: const Text("ADD PLAYLIST"),
+                    cupertino: (_, __) => CupertinoElevatedButtonData(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      borderRadius: BorderRadius.circular(12),
+                      minimumSize: const Size(double.infinity, 44),
+                    ),
                   ),
                 ),
           const SizedBox(height: 10),
@@ -186,7 +194,6 @@ class _TvTextFieldState extends State<_TvTextField> {
 
   bool _editing = false;
 
-  // TV-only: Android + نمط تنقّل Directional
   bool _isAndroidTvLike(BuildContext context) {
     final isAndroid = defaultTargetPlatform == TargetPlatform.android;
     final nav = MediaQuery.of(context).navigationMode;
@@ -236,7 +243,6 @@ class _TvTextFieldState extends State<_TvTextField> {
       return KeyEventResult.handled;
     }
 
-    // التنقّل بالأسهم عندما لا نكون في وضع الكتابة
     if (!_editing) {
       final scope = FocusScope.of(context);
       if (key == LogicalKeyboardKey.arrowDown) {
@@ -264,33 +270,45 @@ class _TvTextFieldState extends State<_TvTextField> {
   Widget build(BuildContext context) {
     final isTv = _isAndroidTvLike(context);
 
-    // على الهاتف/الدسكتوب: حقل عادي بدون منطق الريموت
     if (!isTv) {
-      return TextField(
+      return PlatformTextField(
         controller: widget.controller,
         focusNode: widget.focusNode,
         obscureText: widget.obscureText,
         textInputAction: widget.textInputAction,
         onSubmitted: widget.onSubmitted,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          hintText: widget.hint,
-          hintStyle: const TextStyle(color: Colors.white38),
-          filled: true,
-          fillColor: Colors.white12,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 12,
+        material: (_, __) => MaterialTextFieldData(
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: const TextStyle(color: Colors.white38),
+            filled: true,
+            fillColor: Colors.white12,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
-          border: OutlineInputBorder(
+          style: const TextStyle(color: Colors.white),
+        ),
+        cupertino: (_, __) => CupertinoTextFieldData(
+          placeholder: widget.hint,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white12,
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
           ),
+          style: const TextStyle(color: Colors.white),
+          obscureText: widget.obscureText,
+          textInputAction: widget.textInputAction,
+          onSubmitted: widget.onSubmitted,
         ),
       );
     }
 
-    // على Android TV: منطق الريموت والتركيز والـ Enter لبدء الكتابة
     return Focus(
       focusNode: _wrapperNode,
       onKeyEvent: _handleKey,

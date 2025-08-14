@@ -3,8 +3,9 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import 'movie_details_screen.dart';
 
@@ -113,18 +114,31 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
       return 3;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.categoryName, style: const TextStyle(fontSize: 12)),
+    final appBar = PlatformAppBar(
+      title: Text(widget.categoryName, style: const TextStyle(fontSize: 12)),
+      material: (_, __) => MaterialAppBarData(
+        backgroundColor: Colors.black,
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 15.0),
             child: Image(image: AssetImage('assets/images/logo.png')),
           ),
         ],
-        backgroundColor: Colors.black,
       ),
-      backgroundColor: Colors.black,
+      cupertino: (_, __) => CupertinoNavigationBarData(
+        backgroundColor: Colors.black,
+        trailing: const Padding(
+          padding: EdgeInsets.only(right: 8.0),
+          child: Image(image: AssetImage('assets/images/logo.png')),
+        ),
+      ),
+    );
+
+    return PlatformScaffold(
+      appBar: appBar,
+      material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
+      cupertino: (_, __) =>
+          CupertinoPageScaffoldData(backgroundColor: Colors.black),
       body: SafeArea(
         child: Column(
           children: [
@@ -180,7 +194,7 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
                           child: SizedBox(
                             height: 40,
                             width: 40,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: PlatformCircularProgressIndicator(),
                           ),
                         );
                       }
@@ -270,7 +284,7 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
                                 placeholder: (context, url) => const ColoredBox(
                                   color: Colors.black12,
                                   child: Center(
-                                    child: CircularProgressIndicator(),
+                                    child: PlatformCircularProgressIndicator(),
                                   ),
                                 ),
                                 errorWidget: (context, url, error) =>
@@ -367,39 +381,45 @@ class _SearchFieldState extends State<_SearchField> {
     return Focus(
       focusNode: _wrapperNode,
       onKeyEvent: _handleKey,
-      child: TextField(
-        controller: widget.controller,
-        focusNode: _textNode,
-        readOnly: _isAndroid ? !_editing : false,
-        onTap: _startEditing,
-        onSubmitted: (value) {
-          widget.onSubmit(value);
-          _stopEditing();
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: widget.controller,
+        builder: (context, value, _) {
+          final showClear = value.text.isNotEmpty;
+          return TextField(
+            controller: widget.controller,
+            focusNode: _textNode,
+            readOnly: _isAndroid ? !_editing : false,
+            onTap: _startEditing,
+            onSubmitted: (val) {
+              widget.onSubmit(val);
+              _stopEditing();
+            },
+            onEditingComplete: _stopEditing,
+            style: const TextStyle(color: Colors.white),
+            cursorColor: Colors.white70,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'ابحث عن فيلم...',
+              hintStyle: const TextStyle(color: Colors.white54),
+              filled: true,
+              fillColor: Colors.grey[850],
+              prefixIcon: const Icon(Icons.search, color: Colors.white),
+              suffixIcon: showClear
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.white54),
+                      onPressed: () {
+                        widget.onClear();
+                        if (_editing) _textNode.requestFocus();
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          );
         },
-        onEditingComplete: _stopEditing,
-        style: const TextStyle(color: Colors.white),
-        cursorColor: Colors.white70,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'ابحث عن فيلم...',
-          hintStyle: const TextStyle(color: Colors.white54),
-          filled: true,
-          fillColor: Colors.grey[850],
-          prefixIcon: const Icon(Icons.search, color: Colors.white),
-          suffixIcon: widget.controller.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white54),
-                  onPressed: () {
-                    widget.onClear();
-                    if (_editing) _textNode.requestFocus();
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
       ),
     );
   }

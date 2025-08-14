@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/providers/core_providers.dart';
 import 'package:shoof_tv/presentation/screens/settiings/widgets/speed_test_card.dart';
@@ -27,20 +29,34 @@ class SettingsScreen extends ConsumerWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15.0),
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
+    return PlatformScaffold(
+      backgroundColor: Colors.black,
+      appBar: PlatformAppBar(
+        title: const Text("Setting", style: TextStyle(fontSize: 15)),
+        material: (_, __) => MaterialAppBarData(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 15.0),
+              child: Image.asset('assets/images/logo.png'),
+            ),
+          ],
+        ),
+        cupertino: (_, __) => CupertinoNavigationBarData(
+          backgroundColor: Colors.black,
+          trailing: Padding(
+            padding: const EdgeInsets.only(right: 8.0),
             child: Image.asset('assets/images/logo.png'),
           ),
-        ],
-        title: const Text("Setting", style: TextStyle(fontSize: 15)),
-        backgroundColor: Colors.black,
-        elevation: 0,
+        ),
       ),
-      backgroundColor: Colors.black,
       body: SingleChildScrollView(
+        physics: physics,
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -55,43 +71,105 @@ class SettingsScreen extends ConsumerWidget {
               endDate: formattedEnd,
               isTablet: isTablet,
             ),
-
             const SizedBox(height: 20),
             const SpeedTestCard(),
-
             const SizedBox(height: 30),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.color_lens, color: Colors.white),
-              title: const Text(
-                "الوضع الداكن",
-                style: TextStyle(color: Colors.white),
+
+            // Dark mode row
+            PlatformWidget(
+              material: (_, __) => Column(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.color_lens, color: Colors.white),
+                    title: const Text(
+                      "الوضع الداكن",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    trailing: PlatformSwitch(
+                      value: true,
+                      onChanged: (_) {},
+                      material: (_, __) =>
+                          MaterialSwitchData(activeColor: Colors.green),
+                    ),
+                  ),
+                  const Divider(color: Colors.white24),
+                ],
               ),
-              trailing: Switch(
-                value: true,
-                onChanged: (_) {},
-                activeColor: Colors.green,
+              cupertino: (_, __) => Column(
+                children: [
+                  CupertinoListTile(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: Colors.transparent,
+                    leading: const Icon(
+                      CupertinoIcons.paintbrush,
+                      color: Colors.white,
+                    ),
+                    title: const Text(
+                      "الوضع الداكن",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    trailing: PlatformSwitch(value: true, onChanged: (_) {}),
+                  ),
+                  const Divider(color: Colors.white24, height: 1),
+                ],
               ),
             ),
-            const Divider(color: Colors.white24),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.logout, color: Colors.white),
-              title: const Text(
-                "Logout",
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () async {
-                final navigator = Navigator.of(context);
-                final container = ProviderScope.containerOf(context);
 
-                await ref.read(authProvider.notifier).logout();
-                container.invalidate(authProvider);
-                navigator.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const SplashScreen()),
-                  (route) => false,
-                );
-              },
+            // Logout row
+            PlatformWidget(
+              material: (_, __) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  final container = ProviderScope.containerOf(context);
+
+                  await ref.read(authProvider.notifier).logout();
+                  if (!context.mounted) return;
+                  container.invalidate(authProvider);
+
+                  navigator.pushAndRemoveUntil(
+                    platformPageRoute(
+                      context: context,
+                      builder: (_) => const SplashScreen(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
+              cupertino: (_, __) => CupertinoListTile(
+                padding: EdgeInsets.zero,
+                backgroundColor: Colors.transparent,
+                leading: const Icon(
+                  CupertinoIcons.square_arrow_right,
+                  color: Colors.white,
+                ),
+                title: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  final container = ProviderScope.containerOf(context);
+
+                  await ref.read(authProvider.notifier).logout();
+                  if (!context.mounted) return;
+                  container.invalidate(authProvider);
+
+                  navigator.pushAndRemoveUntil(
+                    platformPageRoute(
+                      context: context,
+                      builder: (_) => const SplashScreen(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
             ),
           ],
         ),

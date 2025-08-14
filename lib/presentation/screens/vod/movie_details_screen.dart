@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import 'package:shoof_tv/presentation/screens/vod/movie_player_screen.dart';
 
@@ -46,7 +47,6 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
         .toList();
   }
 
-  // -------------------- عنوان أفضل: Helpers (بدون Reflection) --------------------
   bool _isUnknownLike(String? s) {
     if (s == null) return true;
     final v = s.trim().toLowerCase();
@@ -60,7 +60,6 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
   Map<String, dynamic> _toMap(dynamic obj) {
     try {
       if (obj is Map<String, dynamic>) return obj;
-      // حاول toJson()
       final dyn = obj as dynamic;
       if (dyn?.toJson is Function) {
         final m = dyn.toJson();
@@ -82,12 +81,10 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     return cur is String ? cur : null;
   }
 
-  /// يحاول استخراج أفضل عنوان من model (ثم fallback) بالاعتماد على مفاتيح شائعة
   String _bestTitle(dynamic model, {dynamic fallback}) {
     final modelMap = _toMap(model);
     final fbMap = _toMap(fallback);
 
-    // مفاتيح شائعة في مصادر IPTV/XTream/NFO وغيرها
     const paths = <List<String>>[
       ['name'],
       ['title'],
@@ -97,7 +94,6 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
       ['originalTitle'],
       ['streamDisplayName'],
       ['stream_name'],
-      // داخل info
       ['info', 'name'],
       ['info', 'title'],
       ['info', 'movie_name'],
@@ -106,18 +102,15 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
 
     final candidates = <String?>[];
 
-    // 1) من الـ model نفسه (خرائط مباشرة)
     for (final p in paths) {
       candidates.add(_readPathFromMap(modelMap, p));
     }
 
-    // 2) من خصائص مباشرة محتملة (بدون reflection—نحاول .name فقط)
     try {
       final n = (model as dynamic).name as String?;
       candidates.add(n);
     } catch (_) {}
 
-    // 3) من الـ fallback إن توفّر
     if (fallback != null) {
       for (final p in paths) {
         candidates.add(_readPathFromMap(fbMap, p));
@@ -128,13 +121,11 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
       } catch (_) {}
     }
 
-    // أول نص صالح
     for (final c in candidates) {
       if (!_isUnknownLike(c)) return c!.trim();
     }
     return 'بدون عنوان';
   }
-  // ------------------------------------------------------------------------------
 
   String _safeText(BuildContext context, String? value) {
     final v = (value ?? '').trim();
@@ -161,7 +152,6 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     if (durationRaw == null || durationRaw.trim().isEmpty) return 'غير متاح';
     final s = durationRaw.trim();
 
-    // "HH:MM" أو "HH:MM:SS"
     final colon = RegExp(r'^\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*$');
     final m = colon.firstMatch(s);
     if (m != null) {
@@ -172,7 +162,6 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
       return _arabicDuration(totalMins);
     }
 
-    // أرقام حرّة "120 min", "6300 sec", "95"
     final digits = RegExp(r'\d+').firstMatch(s)?.group(0);
     if (digits == null) return 'غير متاح';
     final n = int.tryParse(digits) ?? 0;
@@ -268,10 +257,9 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     const double maxContentWidth = 1200.0;
     final bool wideLayout = _isDesktop || screen.width >= 900;
 
-    return Scaffold(
+    return PlatformScaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
+      appBar: PlatformAppBar(
         title: FutureBuilder<MovieModel>(
           future: _movieDetailsFuture,
           builder: (context, snap) {
@@ -285,12 +273,16 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
             );
           },
         ),
+        material: (_, __) =>
+            MaterialAppBarData(backgroundColor: Colors.transparent),
+        cupertino: (_, __) =>
+            CupertinoNavigationBarData(backgroundColor: Colors.transparent),
       ),
       body: FutureBuilder<MovieModel>(
         future: _movieDetailsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: PlatformCircularProgressIndicator());
           }
 
           if (!snapshot.hasData || snapshot.hasError) {

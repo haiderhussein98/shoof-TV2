@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 import 'package:shoof_tv/presentation/screens/series/viewmodel/series_viewmodel.dart';
 import '../../../data/models/series_model.dart';
@@ -80,40 +81,66 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Scaffold(
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
+    final content = SafeArea(
+      child: _isSearching && _searchResults != null
+          ? _SeriesSearchResultsGrid(
+              resultsFuture: _searchResults!,
+              isTv: _isAndroidTvLike(context),
+              physics: physics,
+            )
+          : FutureBuilder<List<Map<String, String>>>(
+              future: _categoriesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: PlatformCircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text(
+                      'فشل تحميل التصنيفات',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+                final categories =
+                    snapshot.data ?? const <Map<String, String>>[];
+                return SeriesCategoryList(categories: categories);
+              },
+            ),
+    );
+
+    return PlatformScaffold(
       backgroundColor: Colors.black,
-      appBar: SeriesAppBar(
-        searchController: _searchController,
-        isSearching: _isSearching,
-        onClear: _clearSearch,
-        onSearch: _onSearch, // onChanged + onSubmitted من الAppBar
+      material: (_, __) => MaterialScaffoldData(
+        backgroundColor: Colors.black,
+        appBar: SeriesAppBar(
+          searchController: _searchController,
+          isSearching: _isSearching,
+          onClear: _clearSearch,
+          onSearch: _onSearch,
+        ),
       ),
-      body: SafeArea(
-        child: _isSearching && _searchResults != null
-            ? _SeriesSearchResultsGrid(
-                resultsFuture: _searchResults!,
-                isTv: _isAndroidTvLike(context),
-              )
-            : FutureBuilder<List<Map<String, String>>>(
-                future: _categoriesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text(
-                        'فشل تحميل التصنيفات',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }
-                  final categories =
-                      snapshot.data ?? const <Map<String, String>>[];
-                  return SeriesCategoryList(categories: categories);
-                },
-              ),
-      ),
+      cupertino: (_, __) => CupertinoPageScaffoldData(),
+      body: isCupertino(context)
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SeriesAppBar(
+                  searchController: _searchController,
+                  isSearching: _isSearching,
+                  onClear: _clearSearch,
+                  onSearch: _onSearch,
+                ),
+                Expanded(child: content),
+              ],
+            )
+          : content,
     );
   }
 }
@@ -121,10 +148,12 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
 class _SeriesSearchResultsGrid extends StatefulWidget {
   final Future<List<SeriesModel>> resultsFuture;
   final bool isTv;
+  final ScrollPhysics physics;
 
   const _SeriesSearchResultsGrid({
     required this.resultsFuture,
     required this.isTv,
+    required this.physics,
   });
 
   @override
@@ -149,24 +178,10 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
     setState(() => _loadingIndex = index);
 
     try {
-      await Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 260),
-          pageBuilder: (_, __, ___) => SeriesDetailsScreen(series: s),
-          transitionsBuilder: (_, animation, __, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            );
-            return FadeTransition(
-              opacity: curved,
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.98, end: 1).animate(curved),
-                child: child,
-              ),
-            );
-          },
+      await Navigator.of(context).push(
+        platformPageRoute(
+          context: context,
+          builder: (_) => SeriesDetailsScreen(series: s),
         ),
       );
     } finally {
@@ -189,7 +204,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
       future: widget.resultsFuture,
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: PlatformCircularProgressIndicator());
         }
         if (snap.hasError) {
           return const Center(
@@ -209,16 +224,17 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
           );
         }
 
-        // تحضير فوكس للعناصر (TV فقط)
         if (_nodes.length != results.length) {
           for (final n in _nodes) {
             n.dispose();
           }
-          _nodes.clear();
-          _nodes.addAll(List.generate(results.length, (_) => FocusNode()));
+          _nodes
+            ..clear()
+            ..addAll(List.generate(results.length, (_) => FocusNode()));
         }
 
         return GridView.builder(
+          physics: widget.physics,
           padding: const EdgeInsets.all(12),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cross(),
@@ -237,7 +253,6 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // استخدم Image.network لتجنب إضافة حزم
                   Image.network(
                     s.cover,
                     fit: BoxFit.cover,
@@ -247,7 +262,9 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
                       if (evt == null) return child;
                       return const ColoredBox(
                         color: Colors.black12,
-                        child: Center(child: CircularProgressIndicator()),
+                        child: Center(
+                          child: PlatformCircularProgressIndicator(),
+                        ),
                       );
                     },
                   ),
@@ -256,9 +273,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
                       color: Colors.black.withValues(alpha: 0.35),
                       child: const Padding(
                         padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(
-                          color: Colors.redAccent,
-                        ),
+                        child: PlatformCircularProgressIndicator(),
                       ),
                     ),
                 ],

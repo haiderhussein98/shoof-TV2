@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
 class SeriesVideoView extends StatelessWidget {
@@ -20,7 +21,9 @@ class SeriesVideoView extends StatelessWidget {
           child: VlcPlayer(
             controller: controller,
             aspectRatio: aspectRatio,
-            placeholder: const Center(child: CircularProgressIndicator()),
+            placeholder: const Center(
+              child: PlatformCircularProgressIndicator(),
+            ),
           ),
         ),
       ),

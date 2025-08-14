@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
 class AppSearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -9,8 +11,6 @@ class AppSearchField extends StatelessWidget {
   final EdgeInsets padding;
   final FocusNode? focusNode;
   final bool readOnly;
-
-  /// اختياري: إظهار زر مسح واستدعاء onClear عند الضغط
   final bool showClearButton;
   final VoidCallback? onClear;
 
@@ -39,7 +39,6 @@ class AppSearchField extends StatelessWidget {
     final isRtl = _isRTL(context);
     final hint = isRtl ? hintAr : hintEn;
 
-    // نستخدم ValueListenableBuilder عشان نحدّث زر المسح مع تغيّر النص بدون تحويل الودجت إلى Stateful
     return Padding(
       padding: padding,
       child: Directionality(
@@ -48,55 +47,104 @@ class AppSearchField extends StatelessWidget {
           valueListenable: controller,
           builder: (context, value, _) {
             final hasText = value.text.isNotEmpty;
-            return TextField(
-              controller: controller,
-              focusNode: focusNode,
-              readOnly: readOnly,
-              onChanged: onChanged,
-              onSubmitted: onSubmitted,
-              style: const TextStyle(color: Colors.white),
-              cursorColor: Colors.white70,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: const TextStyle(color: Colors.white60),
-                filled: true,
-                fillColor: const Color(0xFF1E1F25),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+
+            return PlatformWidget(
+              material: (_, __) => TextField(
+                controller: controller,
+                focusNode: focusNode,
+                readOnly: readOnly,
+                onChanged: onChanged,
+                onSubmitted: onSubmitted,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white70,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  hintStyle: const TextStyle(color: Colors.white60),
+                  filled: true,
+                  fillColor: const Color(0xFF1E1F25),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 14,
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                  suffixIcon: showClearButton && hasText
+                      ? IconButton(
+                          splashRadius: 18,
+                          icon: const Icon(Icons.clear, color: Colors.white54),
+                          onPressed: () {
+                            controller.clear();
+                            focusNode?.requestFocus();
+                            onClear?.call();
+                            onChanged?.call('');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0x22FFFFFF),
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0x44FFFFFF),
+                      width: 1,
+                    ),
+                  ),
                 ),
-                prefixIcon: const Icon(Icons.search, color: Colors.white70),
-                suffixIcon: showClearButton && hasText
-                    ? IconButton(
-                        splashRadius: 18,
-                        icon: const Icon(Icons.clear, color: Colors.white54),
-                        onPressed: () {
+              ),
+              cupertino: (_, __) => CupertinoTextField(
+                controller: controller,
+                focusNode: focusNode,
+                readOnly: readOnly,
+                onChanged: onChanged,
+                onSubmitted: onSubmitted,
+                placeholder: hint,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                textInputAction: TextInputAction.search,
+                cursorColor: CupertinoColors.systemGrey,
+                style: const TextStyle(color: Colors.white),
+                placeholderStyle: const TextStyle(
+                  color: CupertinoColors.systemGrey2,
+                ),
+                prefix: const Padding(
+                  padding: EdgeInsetsDirectional.only(start: 8),
+                  child: Icon(
+                    CupertinoIcons.search,
+                    color: CupertinoColors.systemGrey2,
+                  ),
+                ),
+                suffix: showClearButton && hasText
+                    ? GestureDetector(
+                        onTap: () {
                           controller.clear();
-                          // نبقي الفوكس كما هو؛ لو تبغى ترجّعه لنفس الحقل:
                           focusNode?.requestFocus();
                           onClear?.call();
-                          onChanged?.call(''); // لتحديث نتائج البحث إن احتجت
+                          onChanged?.call('');
                         },
+                        child: const Padding(
+                          padding: EdgeInsetsDirectional.only(end: 8),
+                          child: Icon(
+                            CupertinoIcons.xmark_circle_fill,
+                            color: CupertinoColors.systemGrey2,
+                          ),
+                        ),
                       )
                     : null,
-                border: OutlineInputBorder(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1F25),
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: Color(0x22FFFFFF),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: Color(0x44FFFFFF),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0x22FFFFFF), width: 1),
                 ),
               ),
             );

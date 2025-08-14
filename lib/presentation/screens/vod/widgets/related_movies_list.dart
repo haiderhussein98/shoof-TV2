@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/data/models/movie_model.dart.dart';
 
 class RelatedMoviesList extends StatelessWidget {
@@ -13,13 +14,17 @@ class RelatedMoviesList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final physics = isCupertino(context)
+        ? const BouncingScrollPhysics()
+        : const ClampingScrollPhysics();
+
     return FutureBuilder<List<MovieModel>>(
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SizedBox(
             height: 100,
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: PlatformCircularProgressIndicator()),
           );
         }
 
@@ -36,6 +41,7 @@ class RelatedMoviesList extends StatelessWidget {
         return SizedBox(
           height: 190,
           child: ListView.builder(
+            physics: physics,
             scrollDirection: Axis.horizontal,
             itemCount: count,
             itemBuilder: (context, index) {
