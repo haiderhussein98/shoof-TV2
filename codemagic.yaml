@@ -2,6 +2,7 @@ workflows:
   ios_unsigned:
     name: iOS Unsigned IPA (shoof_tv)
     max_build_duration: 60
+    instance_type: mac_mini_m1
 
     environment:
       flutter: stable
@@ -91,18 +92,18 @@ workflows:
         script: |
           set -e
           xcodebuild -workspace ios/Runner.xcworkspace \
-                     -scheme Runner \
-                     -configuration Release \
-                     -sdk iphoneos \
-                     -archivePath build/Runner.xcarchive \
-                     IPHONEOS_DEPLOYMENT_TARGET=${IOS_MIN_VERSION} \
-                     PRODUCT_BUNDLE_IDENTIFIER=${BUNDLE_ID} \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGN_IDENTITY="" \
-                     DEVELOPMENT_TEAM="" \
-                     PROVISIONING_PROFILE_SPECIFIER="" \
-                     archive
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/Runner.xcarchive \
+            IPHONEOS_DEPLOYMENT_TARGET=${IOS_MIN_VERSION} \
+            PRODUCT_BUNDLE_IDENTIFIER=${BUNDLE_ID} \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            archive
 
       - name: Package unsigned .ipa
         script: |
@@ -127,7 +128,9 @@ workflows:
       - $CM_ARTIFACTS/shoof_tv-unsigned.ipa
       - build/Runner.xcarchive
       - build/Build/Products/Release-iphoneos/*.app
-
     triggering:
       events:
-        - manual
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
