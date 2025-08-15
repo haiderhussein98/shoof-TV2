@@ -1,8 +1,8 @@
 workflows:
   ios_unsigned:
     name: iOS Unsigned IPA (shoof_tv)
-    max_build_duration: 60
     instance_type: mac_mini_m1
+    max_build_duration: 60
 
     environment:
       flutter: stable
@@ -34,24 +34,24 @@ workflows:
           rm -rf Pods Podfile.lock
           pod repo update
           pod install --verbose
-          
 
-
-      - name: Print Pods tree
+      - name: Build iOS app (no codesign) & package IPA
         script: |
           set -e
-          cd ios
-          pod --version
-          pod deintegrate
-          pod install --repo-update
-          xcodebuild -workspace Runner.xcworkspace -scheme Runner -showBuildSettings | grep -E "HEADER|FRAMEWORK|PODS_ROOT" || true
+          # يبني .app بدون توقيع
+          flutter build ios --release --no-codesign
 
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "Runner.app not found"; exit 1
+          fi
 
-      - name: Build iOS IPA (unsigned)
-        script: |
-          set -e
-          flutter build ipa --release --no-codesign
+          # نحزّم .ipa يدويًا بدون توقيع
+          rm -rf Payload Runner-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r -y Runner-unsigned.ipa Payload
 
     artifacts:
-      - build/ios/ipa/*.ipa
-      - build/ios/archive/*.xcarchive
+      - Runner-unsigned.ipa
+      - build/ios/iphoneos/*.app
