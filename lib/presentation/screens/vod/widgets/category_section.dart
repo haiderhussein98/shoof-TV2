@@ -64,9 +64,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     widget.onSetLoading(index);
 
     try {
-      final details = await ref
-          .read(vodServiceProvider)
-          .getMovieDetails(movie.streamId);
+      final details =
+          await ref.read(vodServiceProvider).getMovieDetails(movie.streamId);
       if (!context.mounted) return;
 
       await Navigator.of(context).push(
@@ -96,7 +95,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
+          content: Text('فشل تحميل تفاصيل الفيلم'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -198,8 +197,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                       final itemWidth = widget.screenWidth > 900
                           ? 150.0
                           : widget.screenWidth > 600
-                          ? 130.0
-                          : 110.0;
+                              ? 130.0
+                              : 110.0;
 
                       return Focus(
                         onKeyEvent: (node, event) {
@@ -285,17 +284,17 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                                       memCacheWidth: 420,
                                       placeholder: (context, url) =>
                                           const ColoredBox(
-                                            color: Colors.black12,
-                                            child: Center(
-                                              child:
-                                                  PlatformCircularProgressIndicator(),
-                                            ),
-                                          ),
+                                        color: Colors.black12,
+                                        child: Center(
+                                          child:
+                                              PlatformCircularProgressIndicator(),
+                                        ),
+                                      ),
                                       errorWidget: (context, url, error) =>
                                           const Icon(
-                                            Icons.error,
-                                            color: Colors.red,
-                                          ),
+                                        Icons.error,
+                                        color: Colors.red,
+                                      ),
                                     ),
                                     if (isLoading)
                                       Container(
@@ -306,11 +305,11 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                                           padding: const EdgeInsets.all(8.0),
                                           child:
                                               PlatformCircularProgressIndicator(
-                                                material: (_, __) =>
-                                                    MaterialProgressIndicatorData(
-                                                      color: Colors.redAccent,
-                                                    ),
-                                              ),
+                                            material: (_, __) =>
+                                                MaterialProgressIndicatorData(
+                                              color: Colors.redAccent,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                   ],
@@ -357,8 +356,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
             onKeyEvent: (node, event) {
               if (!isTv) return KeyEventResult.ignored;
               if (event is KeyDownEvent) {
-                final isSelect =
-                    event.logicalKey == LogicalKeyboardKey.enter ||
+                final isSelect = event.logicalKey == LogicalKeyboardKey.enter ||
                     event.logicalKey == LogicalKeyboardKey.select ||
                     event.logicalKey == LogicalKeyboardKey.space ||
                     event.logicalKey == LogicalKeyboardKey.numpadEnter;
@@ -398,7 +396,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                     ),
                     const SizedBox(width: 6),
                     const Text(
-                      "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„ÙƒÙ„",
+                      "مشاهدة الكل",
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 13,
@@ -415,4 +413,3 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 }
-

@@ -36,7 +36,7 @@ class SeriesLoadingOverlay extends StatelessWidget {
                     const PlatformCircularProgressIndicator(),
                     const SizedBox(height: 12),
                     const Text(
-                      'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...',
+                      'جاري التحميل...',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ],
@@ -49,4 +49,3 @@ class SeriesLoadingOverlay extends StatelessWidget {
     );
   }
 }
-

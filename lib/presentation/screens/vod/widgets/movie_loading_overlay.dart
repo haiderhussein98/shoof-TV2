@@ -36,7 +36,7 @@ class MovieLoadingOverlay extends StatelessWidget {
                     PlatformCircularProgressIndicator(),
                     SizedBox(height: 12),
                     Text(
-                      'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...',
+                      'جاري التحميل...',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ],
@@ -49,4 +49,3 @@ class MovieLoadingOverlay extends StatelessWidget {
     );
   }
 }
-

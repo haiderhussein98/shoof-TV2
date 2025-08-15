@@ -8,14 +8,32 @@ class UserService {
 
   UserService(this.serverUrl, this.username, this.password);
 
+  dynamic _decodeUtf8(http.Response r) => jsonDecode(utf8.decode(r.bodyBytes));
+
+  bool _asBool(dynamic v) {
+    if (v is bool) return v;
+    final s = v?.toString().toLowerCase();
+    return s == '1' || s == 'true' || s == 'yes';
+  }
+
   Future<bool> validateLogin() async {
     final url = Uri.parse(
       '$serverUrl/player_api.php?username=$username&password=$password',
     );
+
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['user_info']?['auth'] == 1;
+      final data = _decodeUtf8(response);
+
+      dynamic auth;
+      if (data is Map) {
+        final userInfo = data['user_info'];
+        if (userInfo is Map) {
+          auth = userInfo['auth'];
+        }
+      }
+
+      return _asBool(auth);
     }
     return false;
   }
@@ -24,15 +42,17 @@ class UserService {
     final url = Uri.parse(
       '$serverUrl/player_api.php?username=$username&password=$password',
     );
+
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final userInfo = data['user_info'];
-      if (userInfo == null) throw Exception("Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ù†ØªÙ‡ÙŠ Ø£Ùˆ ØºÙŠØ± ØµØ§Ù„Ø­");
+      final data = _decodeUtf8(response);
+      if (data is! Map || data['user_info'] == null) {
+        throw Exception('الحساب منتهي أو غير صالح');
+      }
+      final userInfo = Map<String, dynamic>.from(data['user_info'] as Map);
       return userInfo;
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…");
+      throw Exception('فشل تحميل بيانات المستخدم (رمز ${response.statusCode})');
     }
   }
 }
-

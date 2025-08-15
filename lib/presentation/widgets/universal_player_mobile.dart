@@ -1,4 +1,5 @@
-﻿import 'dart:async';
+﻿// ... نفس الاستيرادات التي لديك بالضبط ...
+import 'dart:async';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -10,6 +11,9 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shoof_tv/domain/providers/live_providers.dart';
+import 'package:shoof_tv/data/models/channel_model.dart';
 
 enum ContentType { live, movie, series }
 
@@ -43,6 +47,7 @@ class UniversalPlayerMobile extends StatefulWidget {
 
 class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     with WidgetsBindingObserver {
+  // =================== حالة المشغّل ===================
   late VlcPlayerController _vlc;
   bool _isDisposed = false;
 
@@ -74,17 +79,43 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   Timer? _connectionCheckTimer;
   final ValueNotifier<int> _latencyNotifier = ValueNotifier(0);
 
+  // مراقبة التعطل للبث
+  Timer? _stallWatchTimer;
+  int? _lastLivePosSec;
+  DateTime? _lastLivePosTs;
+
   static bool? _isTvCached;
   bool _isTv = false;
   bool _orientationRestored = false;
+  bool _routeAnimHooked = false;
 
-  String get _liveStreamUrl {
+  // ===== واجهة ستلايت =====
+  // نخلي الصف دائماً موجود ونكبر/نصغّر اللوحة اليسرى للعرض صفر عند ملء الشاشة.
+  double _leftPaneWidth = 280;
+  bool _isFullscreen = false;
+
+  // تحكم جانبي
+  double _brightness = 1.0;
+  double _volume = 70;
+  bool _showSideSliders = false;
+
+  // قناة حالية
+  int? _currentStreamId;
+  String? _currentCategoryId;
+  String? _currentCategoryName;
+  String? _currentChannelName;
+  bool _isSwitchingChannel = false;
+
+  final ScrollController _leftPaneScroll = ScrollController();
+
+  // =================== Helpers ===================
+  String _liveStreamUrlFor(int? streamId) {
     final encodedUser = Uri.encodeComponent(widget.username ?? '');
     final encodedPass = Uri.encodeComponent(widget.password ?? '');
     final encodedServer = (widget.serverUrl ?? '')
         .replaceAll('https://', '')
         .replaceAll('http://', '');
-    final id = widget.streamId ?? 0;
+    final id = streamId ?? 0;
     return 'http://$encodedServer/live/$encodedUser/$encodedPass/$id.m3u8';
   }
 
@@ -99,8 +130,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
       final features = info.systemFeatures;
       final model = (info.model).toLowerCase();
       final brand = (info.brand).toLowerCase();
-      final isTv =
-          features.contains('android.software.leanback') ||
+      final isTv = features.contains('android.software.leanback') ||
           features.contains('android.software.television') ||
           model.contains('tv') ||
           brand.contains('tv');
@@ -114,37 +144,25 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
 
   final FocusNode _playPauseFocus = FocusNode(debugLabel: 'play_pause_btn');
   final FocusNode _backButtonFocus = FocusNode(debugLabel: 'back_btn');
+
   bool get _isMobileOS =>
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
+  // =================== Lifecycle ===================
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    // Ø¥Ø®ÙØ§Ø¡ Ø´Ø±ÙŠØ· Ø§Ù„Ø­Ø§Ù„Ø© Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ø£Ø«Ù†Ø§Ø¡ ØªØ´ØºÙŠÙ„ Ø§Ù„Ù…Ø´ØºÙ‘Ù„
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    _currentStreamId = widget.streamId;
 
     _createController(initialForLive: _isLive);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _backButtonFocus.requestFocus();
-        }
+        if (mounted) _backButtonFocus.requestFocus();
       });
-
-      _isTv = await _detectAndroidTV();
-      if (_isTv) {
-        await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      } else if (_isMobileOS) {
-        await SystemChrome.setPreferredOrientations(const [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      }
 
       if (_isVod) {
         _startVodTracking();
@@ -152,16 +170,61 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
       } else {
         _hasStarted = true;
         _startConnectionTracking();
+        _startLiveStallWatch();
       }
 
       _monitorInternet();
       _toggleControls();
+      try {
+        await _vlc.setVolume(_volume.toInt());
+      } catch (_) {}
     });
   }
 
-  // ============================ Ø®ÙŠØ§Ø±Ø§Øª LIVE & VOD ============================
+  Future<void> _setupSystemUiAfterTransition() async {
+    if (!mounted || _isDisposed) return;
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    _isTv = await _detectAndroidTV();
+    if (_isTv) {
+      await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    } else if (_isMobileOS) {
+      await SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeAnimHooked) return;
+    _routeAnimHooked = true;
+
+    final anim = ModalRoute.of(context)?.animation;
+    if (anim == null) {
+      _setupSystemUiAfterTransition();
+      return;
+    }
+    if (anim.status == AnimationStatus.completed) {
+      _setupSystemUiAfterTransition();
+    } else {
+      void listener(AnimationStatus s) {
+        if (s == AnimationStatus.completed) {
+          anim.removeStatusListener(listener);
+          _setupSystemUiAfterTransition();
+        }
+      }
+
+      anim.addStatusListener(listener);
+    }
+  }
+
   void _createController({required bool initialForLive}) {
-    final source = initialForLive ? _liveStreamUrl : (widget.url ?? '');
+    final source = initialForLive
+        ? _liveStreamUrlFor(_currentStreamId)
+        : (widget.url ?? '');
 
     final liveOptions = VlcPlayerOptions(
       advanced: VlcAdvancedOptions([
@@ -184,7 +247,31 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     );
     _vlc.addListener(_onVlcState);
   }
-  // ==========================================================================
+
+  Future<void> _switchLiveChannel(ChannelModel ch) async {
+    if (_isSwitchingChannel || _isDisposed) return;
+    _isSwitchingChannel = true;
+    setState(() {
+      _currentCategoryId = ch.categoryId;
+      _currentCategoryName = ch.categoryId;
+      _currentChannelName = ch.name;
+    });
+
+    try {
+      final url = _liveStreamUrlFor(ch.streamId);
+      try {
+        await _vlc.pause();
+      } catch (_) {}
+      await _vlc.setMediaFromNetwork(url, autoPlay: true);
+      _hasError = false;
+      _retryCount = 0;
+      setState(() => _currentStreamId = ch.streamId);
+    } catch (_) {
+      _ensureRecoveryLive();
+    } finally {
+      _isSwitchingChannel = false;
+    }
+  }
 
   void _onVlcState() {
     if (!mounted || _isDisposed) return;
@@ -202,6 +289,17 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
       setState(() => _vodIsPlaying = v.isPlaying);
       if (v.hasError) _ensureRecoveryVod();
     } else {
+      final currSec = v.position.inSeconds;
+      if (_lastLivePosSec == null) {
+        _lastLivePosSec = currSec;
+        _lastLivePosTs = DateTime.now();
+      } else {
+        if (currSec != _lastLivePosSec) {
+          _lastLivePosSec = currSec;
+          _lastLivePosTs = DateTime.now();
+        }
+      }
+
       if (v.hasError) _ensureRecoveryLive();
       if (_hasError != v.hasError) {
         setState(() => _hasError = v.hasError);
@@ -212,6 +310,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
 
   final FocusNode _screenKbFocus = FocusNode(skipTraversal: true);
 
+  // =================== VOD helpers ===================
   void _startVodTracking() {
     _trackTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
       if (_isDisposed) return;
@@ -359,9 +458,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     }
   }
 
-  Future<void> _waitUntilReadyForSeekVod({
-    Duration timeout = const Duration(seconds: 8),
-  }) async {
+  Future<void> _waitUntilReadyForSeekVod(
+      {Duration timeout = const Duration(seconds: 8)}) async {
     final sw = Stopwatch()..start();
     while (sw.elapsed < timeout) {
       if (_isDisposed) break;
@@ -373,9 +471,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
             (dur.inSeconds > 0) || val.isPlaying || val.isBuffering || hasSize;
         if (ready) {
           _duration = dur;
-          if (hasSize) {
-            _lockedAspectRatio ??= val.size.width / val.size.height;
-          }
+          if (hasSize) _lockedAspectRatio ??= val.size.width / val.size.height;
           return;
         }
       } catch (_) {}
@@ -394,15 +490,14 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
       } catch (_) {}
       if (attempt < 2) {
         Future.delayed(
-          const Duration(milliseconds: 500),
-          () => trySeek(attempt + 1),
-        );
+            const Duration(milliseconds: 500), () => trySeek(attempt + 1));
       }
     }
 
     trySeek(0);
   }
 
+  // =================== Live recovery/connection ===================
   Future<bool> _checkInternetConnection() async {
     try {
       final ping = Ping('8.8.8.8', count: 1);
@@ -429,7 +524,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
           await _vlc.stop();
         } catch (_) {}
         try {
-          await _vlc.setMediaFromNetwork(_liveStreamUrl, autoPlay: true);
+          await _vlc.setMediaFromNetwork(_liveStreamUrlFor(_currentStreamId),
+              autoPlay: true);
           _retryCount = 0;
           setState(() => _hasError = false);
           timer.cancel();
@@ -446,7 +542,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
 
   void _ensureRecoveryLive() {
     if (_isDisposed) return;
-
     if (_hasStarted && !_vlc.value.hasError && _vlc.value.isPlaying) return;
 
     _recoveryTimer ??= Timer.periodic(const Duration(seconds: 3), (t) async {
@@ -479,7 +574,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         await _vlc.stop();
       } catch (_) {}
 
-      await _vlc.setMediaFromNetwork(_liveStreamUrl, autoPlay: true);
+      await _vlc.setMediaFromNetwork(_liveStreamUrlFor(_currentStreamId),
+          autoPlay: true);
       _isReopening = false;
       _hasStarted = true;
       if (mounted) setState(() => _hasError = false);
@@ -526,9 +622,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
 
   void _startConnectionTracking() {
     _connectionCheckTimer?.cancel();
-    _connectionCheckTimer = Timer.periodic(const Duration(seconds: 3), (
-      _,
-    ) async {
+    _connectionCheckTimer =
+        Timer.periodic(const Duration(seconds: 3), (_) async {
       try {
         final ping = Ping('8.8.8.8', count: 1);
         final result = await ping.stream.first;
@@ -541,24 +636,56 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     });
   }
 
+  void _startLiveStallWatch() {
+    _stallWatchTimer?.cancel();
+    _stallWatchTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted || _isDisposed || !_isLive) return;
+      final v = _vlc.value;
+      if (v.isBuffering || v.hasError) return;
+      final sec = v.position.inSeconds;
+      final now = DateTime.now();
+      if (_lastLivePosSec == null) {
+        _lastLivePosSec = sec;
+        _lastLivePosTs = now;
+        return;
+      }
+      if (sec == _lastLivePosSec) {
+        final stuckFor = now.difference(_lastLivePosTs ?? now);
+        if (stuckFor > const Duration(seconds: 10)) {
+          _ensureRecoveryLive();
+          _lastLivePosTs = now;
+        }
+      } else {
+        _lastLivePosSec = sec;
+        _lastLivePosTs = now;
+      }
+    });
+  }
+
+  // =================== UI actions ===================
   void _toggleControls() {
     if (!mounted || _isDisposed) return;
-    setState(() => _showControls = !_showControls);
+    setState(() {
+      _showControls = !_showControls;
+      _showSideSliders = _showControls;
+    });
     _hideTimer?.cancel();
     if (_showControls) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _playPauseFocus.requestFocus();
       });
-      _hideTimer = Timer(const Duration(seconds: 4), () {
+      _hideTimer = Timer(const Duration(seconds: 3), () {
         if (!mounted || _isDisposed) return;
-        setState(() => _showControls = false);
+        setState(() {
+          _showControls = false;
+          _showSideSliders = false;
+        });
       });
     }
   }
 
   void _seekBy(int seconds) async {
-    if (_isLive) return; // Ù…Ù†Ø¹ Ø§Ù„Ø³ÙŠÙƒ Ù†Ù‡Ø§Ø¦ÙŠÙ‹Ø§ ÙÙŠ Ø§Ù„Ø­ÙŠ
-    if (_isDisposed) return;
+    if (_isLive || _isDisposed) return;
     try {
       final current = await _vlc.getPosition();
       if (_isDisposed) return;
@@ -574,37 +701,12 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     return h > 0 ? '${two(h)}:$m:$s' : '$m:$s';
   }
 
-  // ignore: unused_element
-  Widget _signalIndicator() {
-    return ValueListenableBuilder<int>(
-      valueListenable: _latencyNotifier,
-      builder: (context, latency, _) {
-        IconData icon = FontAwesomeIcons.wifi;
-        Color color = Colors.red;
-
-        if (latency == -1) {
-          color = Colors.red;
-        } else if (latency < 70) {
-          color = Colors.green;
-        } else if (latency < 200) {
-          color = Colors.orange;
-        }
-        return Tooltip(
-          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
-          child: Icon(icon, color: color, size: 22),
-        );
-      },
-    );
-  }
-
-  // ===== Ù…Ø¤Ø´Ø± Ø´Ø¨ÙƒØ© Ù…ØªØ¬Ø§ÙˆØ¨ (Ù†ÙØ³ Ù…Ù‚ÙŠØ§Ø³ Ø§Ù„Ù„ÙˆØºÙˆ) =====
   Widget _signalIndicatorSized(double size) {
     return ValueListenableBuilder<int>(
       valueListenable: _latencyNotifier,
       builder: (context, latency, _) {
         IconData icon = FontAwesomeIcons.wifi;
         Color color = Colors.red;
-
         if (latency == -1) {
           color = Colors.red;
         } else if (latency < 70) {
@@ -612,10 +714,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         } else if (latency < 200) {
           color = Colors.orange;
         }
-        return Tooltip(
-          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
-          child: Icon(icon, color: color, size: size),
-        );
+        return Icon(icon, color: color, size: size);
       },
     );
   }
@@ -623,8 +722,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   Future<void> _restoreSystemOrientationOnce() async {
     if (_orientationRestored) return;
     _orientationRestored = true;
-
-    // Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ø¸Ù‡Ø§Ø± Ø£Ø´Ø±Ø·Ø© Ø§Ù„Ù†Ø¸Ø§Ù… Ø¹Ù†Ø¯ Ø§Ù„Ø®Ø±ÙˆØ¬
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     if (_isTv) {
@@ -637,21 +734,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     }
   }
 
-  void _toggleOrientationManually() async {
-    if (_isTv) return;
-    final isPortrait =
-        MediaQuery.of(context).orientation == Orientation.portrait;
-    await SystemChrome.setPreferredOrientations(
-      isPortrait
-          ? const [
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight,
-            ]
-          : const [
-              DeviceOrientation.portraitUp,
-              DeviceOrientation.portraitDown,
-            ],
-    );
+  Future<void> _popSmooth() async {
+    if (_isVod) await _saveLastPositionVod();
+    await _restoreSystemOrientationOnce();
+    if (!mounted) return;
+    Navigator.of(context).maybePop();
   }
 
   @override
@@ -677,9 +764,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
 
-    if (_isVod) {
-      _saveLastPositionVod();
-    }
+    if (_isVod) _saveLastPositionVod();
 
     _trackTimer?.cancel();
     _hideTimer?.cancel();
@@ -687,6 +772,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     _recoveryTimer?.cancel();
     _retryTimer?.cancel();
     _connectionCheckTimer?.cancel();
+    _stallWatchTimer?.cancel();
     _playPauseFocus.dispose();
 
     try {
@@ -699,110 +785,122 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
 
     _restoreSystemOrientationOnce();
     _backButtonFocus.dispose();
+    _leftPaneScroll.dispose();
 
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final screen = MediaQuery.of(context).size;
-    final ar = _lockedAspectRatio ?? (screen.width / screen.height);
-    final videoW = 1000.0; // Ø¹Ø±Ø¶ ÙˆÙ‡Ù…ÙŠ Ù„Ø§Ø­ØªØ³Ø§Ø¨ Ø§Ù„Ø­Ø¬Ù… Ø¯Ø§Ø®Ù„ FittedBox
-    final videoH = videoW / ar;
+  // =================== Widgets ===================
+  Widget _buildChannelInfoBar() {
+    final name = _currentChannelName ?? widget.title;
+    final cat = _currentCategoryName ?? 'غير محدد';
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.30),
+        border: const Border(top: BorderSide(color: Color(0x22FFFFFF))),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: const Text('LIVE',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 10)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                Text(cat,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 11)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          _signalIndicatorSized(14),
+          const SizedBox(width: 8),
+          if (_currentStreamId != null)
+            Text('#$_currentStreamId',
+                style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        ],
+      ),
+    );
+  }
 
-    return PlatformScaffold(
-      // Ù†Ø¬Ø¹Ù„ Ø§Ù„Ø®Ù„ÙÙŠØ© Ø¯Ø§ÙƒÙ†Ø© Ø¹Ù„Ù‰ ÙƒÙ„ Ø§Ù„Ø£Ù†Ø¸Ù…Ø©
-      material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
-      cupertino: (_, __) =>
-          CupertinoPageScaffoldData(backgroundColor: Colors.black),
-      body: Focus(
-        focusNode: _screenKbFocus,
-        onKeyEvent: (node, event) {
-          if (event is! KeyDownEvent) return KeyEventResult.ignored;
+  Widget _buildPlayerStack(double ar) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _toggleControls,
+      child: LayoutBuilder(
+        builder: (context, cons) {
+          final w = cons.maxWidth;
+          final childW = w;
+          final childH = childW / ar;
 
-          final key = event.logicalKey;
-          final isOk =
-              key == LogicalKeyboardKey.select ||
-              key == LogicalKeyboardKey.enter ||
-              key == LogicalKeyboardKey.numpadEnter ||
-              key == LogicalKeyboardKey.space;
-
-          if (isOk) {
-            _toggleControls();
-            if (_showControls) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _playPauseFocus.requestFocus();
-              });
-            }
-            return KeyEventResult.handled;
-          }
-
-          if (_showControls && key == LogicalKeyboardKey.arrowUp) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _backButtonFocus.requestFocus();
-            });
-            return KeyEventResult.handled;
-          }
-
-          return KeyEventResult.ignored;
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _toggleControls,
-          child: Stack(
+          return Stack(
             children: [
-              // Ø§Ù„ÙÙŠØ¯ÙŠÙˆ ÙŠÙ…Ù„Ø£ Ø§Ù„Ø´Ø§Ø´Ø© Ø¨Ø¯ÙˆÙ† Ø­ÙˆØ§Ù ÙˆØ¨Ù‚ØµÙ‘ Ø¢Ù…Ù†
               Positioned.fill(
                 child: ClipRect(
                   child: FittedBox(
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
                     child: SizedBox(
-                      width: videoW,
-                      height: videoH,
+                      width: childW,
+                      height: childH,
                       child: VlcPlayer(
                         controller: _vlc,
                         aspectRatio: ar,
-                        placeholder: Center(
-                          child: PlatformCircularProgressIndicator(),
-                        ),
+                        placeholder:
+                            const Center(child: CircularProgressIndicator()),
                       ),
                     ),
                   ),
                 ),
               ),
 
-              // ===== Ù…Ø¤Ø´Ù‘Ø± Ø§Ù„Ø´Ø¨ÙƒØ© Ø£Ø¹Ù„Ù‰ Ø§Ù„ÙŠÙ…ÙŠÙ† (LIVE ÙÙ‚Ø·) =====
-              if (_isLive)
-                Positioned(
-                  right: MediaQuery.of(context).size.width * 0.1,
-                  top: MediaQuery.of(context).size.height * 0.05,
-                  child: IgnorePointer(
-                    ignoring: true,
-                    child: Builder(
-                      builder: (context) {
-                        final shortest = MediaQuery.of(
-                          context,
-                        ).size.shortestSide;
-                        final baseLogo = (shortest * 0.12).clamp(48.0, 120.0);
-                        final double iconSize = baseLogo * 0.38;
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.35),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: _signalIndicatorSized(iconSize),
-                        );
-                      },
+              // سطوع
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: true,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    color: Colors.black.withValues(
+                      alpha: ((1 - _brightness) * 0.6).clamp(0.0, 1.0),
                     ),
                   ),
                 ),
+              ),
 
-              // Ø·Ø¨Ù‚Ø© ØªØ­Ù…ÙŠÙ„ VOD ÙÙ‚Ø·
+              // مؤشر الشبكة
+              if (_isLive)
+                Positioned(
+                  right: 40,
+                  top: MediaQuery.of(context).padding.top + 6,
+                  child: IgnorePointer(
+                      ignoring: true, child: _signalIndicatorSized(14)),
+                ),
+
+              // تحميل VOD
               if (_isVod)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -810,8 +908,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                     child: ValueListenableBuilder<VlcPlayerValue>(
                       valueListenable: _vlc,
                       builder: (context, v, _) {
-                        final isLoading =
-                            _showBlockingLoader ||
+                        final isLoading = _showBlockingLoader ||
                             v.isBuffering ||
                             _isReopening;
                         return AnimatedOpacity(
@@ -820,7 +917,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                           child: Container(
                             color: Colors.black45,
                             alignment: Alignment.center,
-                            child: PlatformCircularProgressIndicator(),
+                            child: const CircularProgressIndicator(),
                           ),
                         );
                       },
@@ -828,78 +925,100 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // Ø´Ø±ÙŠØ· Ø£Ø¹Ù„Ù‰ (Ø²Ø± Ø±Ø¬ÙˆØ¹ + ØªØ¯ÙˆÙŠØ±)
+              // Top bar
               if (_showControls)
                 Positioned(
-                  left: 12,
-                  right: 12,
-                  top: 12,
+                  left: 8,
+                  right: 8,
+                  top: 8,
                   child: SafeArea(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
+                          padding: EdgeInsets.zero,
                           focusNode: _backButtonFocus,
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                          onPressed: () async {
-                            if (_isVod) {
-                              await _saveLastPositionVod();
+                          iconSize: 20,
+                          icon:
+                              const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () {
+                            if (_isLive && _isFullscreen) {
+                              setState(() => _isFullscreen = false);
+                            } else {
+                              _popSmooth();
                             }
-                            await _restoreSystemOrientationOnce();
-                            if (!context.mounted) return;
-                            Navigator.of(context).pop();
                           },
                         ),
                         if (!_isLive)
                           IconButton(
-                            icon: const Icon(
-                              Icons.screen_rotation,
-                              color: Colors.white,
-                            ),
-                            onPressed: _toggleOrientationManually,
+                            padding: EdgeInsets.zero,
+                            iconSize: 20,
+                            icon: const Icon(Icons.screen_rotation,
+                                color: Colors.white),
+                            onPressed: () {
+                              // تدوير يدويًا للفيدوهات فقط
+                              final isPortrait =
+                                  MediaQuery.of(context).orientation ==
+                                      Orientation.portrait;
+                              SystemChrome.setPreferredOrientations(
+                                isPortrait
+                                    ? const [
+                                        DeviceOrientation.landscapeLeft,
+                                        DeviceOrientation.landscapeRight
+                                      ]
+                                    : const [
+                                        DeviceOrientation.portraitUp,
+                                        DeviceOrientation.portraitDown
+                                      ],
+                              );
+                            },
                           ),
                       ],
                     ),
                   ),
                 ),
 
-              // Ø£Ø³ÙÙ„ Ø§Ù„Ø´Ø§Ø´Ø©: VOD = Ø³Ù„Ø§ÙŠØ¯Ø± | LIVE = Ø´ÙƒÙ„ÙŠ + Ø§Ù„ÙˆÙ‚Øª
+              // شريط تقدم/وقت
               if (_showControls)
                 Positioned(
-                  bottom: 12,
-                  left: 10,
-                  right: 10,
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
                   child: _isVod
                       ? Column(
                           children: [
-                            Slider(
-                              value: _position.inSeconds.toDouble(),
-                              max:
-                                  (_duration.inSeconds > 0
-                                          ? _duration.inSeconds
-                                          : _position.inSeconds + 1)
-                                      .toDouble(),
-                              onChanged: _duration.inSeconds > 0
-                                  ? (v) => _vlc.seekTo(
-                                      Duration(seconds: v.toInt()),
-                                    )
-                                  : null,
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 1.6,
+                                thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6),
+                                overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 10),
+                              ),
+                              child: Slider(
+                                value: _position.inSeconds.toDouble(),
+                                max: (_duration.inSeconds > 0
+                                        ? _duration.inSeconds
+                                        : _position.inSeconds + 1)
+                                    .toDouble(),
+                                onChanged: _duration.inSeconds > 0
+                                    ? (v) => _vlc
+                                        .seekTo(Duration(seconds: v.toInt()))
+                                    : null,
+                              ),
                             ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  _formatTime(_position),
-                                  style: const TextStyle(color: Colors.white),
-                                ),
+                                Text(_formatTime(_position),
+                                    style: const TextStyle(
+                                        color: Colors.white, fontSize: 12)),
                                 Text(
                                   _duration.inSeconds > 0
                                       ? _formatTime(_duration)
                                       : '--:--',
-                                  style: const TextStyle(color: Colors.white),
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -913,18 +1032,24 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                               children: [
                                 IgnorePointer(
                                   ignoring: true,
-                                  child: Slider(
-                                    value: secs.toDouble(),
-                                    max: (secs + 1).toDouble(),
-                                    onChanged: (_) {},
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 1.6,
+                                      thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 5),
+                                    ),
+                                    child: Slider(
+                                      value: secs.toDouble(),
+                                      max: (secs + 1).toDouble(),
+                                      onChanged: (_) {},
+                                    ),
                                   ),
                                 ),
                                 Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _formatTime(v.position),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
+                                  child: Text(_formatTime(v.position),
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 12)),
                                 ),
                               ],
                             );
@@ -932,6 +1057,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                         ),
                 ),
 
+              // أزرار تشغيل/إيقاف
               if (_showControls)
                 Align(
                   alignment: Alignment.center,
@@ -940,22 +1066,20 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                     children: [
                       if (_isVod)
                         IconButton(
-                          icon: const Icon(
-                            Icons.replay_10,
-                            color: Colors.white,
-                            size: 36,
-                          ),
+                          iconSize: 28,
+                          icon:
+                              const Icon(Icons.replay_10, color: Colors.white),
                           onPressed: () => _seekBy(-10),
                         ),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 12),
                       IconButton(
                         focusNode: _playPauseFocus,
+                        iconSize: 40,
                         icon: Icon(
                           (_isVod ? _vodIsPlaying : _vlc.value.isPlaying)
                               ? Icons.pause_circle
                               : Icons.play_circle,
                           color: Colors.white,
-                          size: 50,
                         ),
                         onPressed: () {
                           if (_isVod) {
@@ -975,57 +1099,411 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                           }
                         },
                       ),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 12),
                       if (_isVod)
                         IconButton(
-                          icon: const Icon(
-                            Icons.forward_10,
-                            color: Colors.white,
-                            size: 36,
-                          ),
+                          iconSize: 28,
+                          icon:
+                              const Icon(Icons.forward_10, color: Colors.white),
                           onPressed: () => _seekBy(10),
                         ),
                     ],
                   ),
                 ),
 
-              // Ø§Ù„Ù„ÙˆØºÙˆ Ø«Ø§Ø¨Øª Ø£Ø³ÙÙ„ Ø§Ù„ÙŠÙ…ÙŠÙ† â€” Ù…ØªØ¬Ø§ÙˆØ¨
-              if (widget.logo != null)
+              if (_isLive && _showControls)
                 Positioned(
-                  right: MediaQuery.of(context).size.width * 0.05,
-                  bottom: MediaQuery.of(context).size.height * 0.02,
+                  right: 8,
+                  bottom: 54,
                   child: SafeArea(
-                    minimum: const EdgeInsets.only(right: 8, bottom: 8),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final w = MediaQuery.of(context).size.width;
-                        final double logoSide = w.clamp(400.0, 2000.0) * 0.12;
-                        final double clamped = logoSide.clamp(48.0, 120.0);
-                        return SizedBox(
-                          width: clamped,
-                          height: clamped * 0.38,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Opacity(opacity: 0.6, child: widget.logo!),
-                          ),
-                        );
+                    minimum: const EdgeInsets.only(right: 6, bottom: 6),
+                    child: IconButton(
+                      iconSize: 20,
+                      tooltip: _isFullscreen ? 'وضع مقسوم' : 'ملء الشاشة',
+                      icon: Icon(
+                          size: 40,
+                          _isFullscreen
+                              ? Icons.fullscreen_exit
+                              : Icons.fullscreen,
+                          color: Colors.white),
+                      onPressed: () {
+                        setState(() => _isFullscreen = !_isFullscreen);
+                        // تأكيد التشغيل مباشرة بعد التغيير لتجنب شاشة سوداء
+                        Future.microtask(() {
+                          if (!_isDisposed) _vlc.play();
+                        });
                       },
                     ),
                   ),
                 ),
 
+              if (widget.logo != null)
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: Opacity(
+                      opacity: 0.6,
+                      child: SizedBox(height: 32, child: widget.logo!)),
+                ),
+
               if (_isLive && _hasError)
                 const Center(
-                  child: Text(
-                    "Ø§Ù†Ù‚Ø·Ø¹ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¨Ø«... ØªØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©",
-                    style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                  child: Text('انقطع الاتصال بالبث... تتم إعادة المحاولة',
+                      style: TextStyle(color: Colors.redAccent, fontSize: 14)),
+                ),
+
+              // أشرطة سطوع/صوت
+              if (_showSideSliders) ...[
+                Positioned(
+                  left: 4,
+                  top: 40,
+                  bottom: 40,
+                  child: Container(
+                    width: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.30),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                    child: RotatedBox(
+                      quarterTurns: -1,
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 1.6,
+                          thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 5),
+                        ),
+                        child: Slider(
+                          value: _brightness,
+                          min: 0.2,
+                          max: 1.0,
+                          onChanged: (v) => setState(() => _brightness = v),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+                Positioned(
+                  right: 4,
+                  top: 40,
+                  bottom: 40,
+                  child: Container(
+                    width: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+                    child: RotatedBox(
+                      quarterTurns: -1,
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          trackHeight: 1.6,
+                          thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 5),
+                        ),
+                        child: Slider(
+                          value: _volume,
+                          min: 0,
+                          max: 100,
+                          onChanged: (v) async {
+                            setState(() => _volume = v);
+                            try {
+                              await _vlc.setVolume(v.toInt());
+                            } catch (_) {}
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
-          ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLeftChannelsPane() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final api = ref.watch(liveServiceProvider);
+
+        final future = api.getLiveChannels(offset: 20).then((all) {
+          ChannelModel? current = all.cast<ChannelModel?>().firstWhere(
+                (c) => c?.streamId == _currentStreamId,
+                orElse: () => null,
+              );
+          _currentCategoryId = current?.categoryId ?? _currentCategoryId;
+          _currentCategoryName = (current?.categoryId ??
+              current?.categoryId ??
+              _currentCategoryName);
+          _currentChannelName ??= current?.name;
+
+          if (_currentCategoryId == null) return all.take(50).toList();
+          return all.where((c) => c.categoryId == _currentCategoryId).toList();
+        });
+
+        return FutureBuilder<List<ChannelModel>>(
+          future: future,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final channels = snapshot.data!;
+            if (channels.isEmpty) {
+              return const Center(
+                child: Text('لا توجد قنوات لهذا التصنيف',
+                    style: TextStyle(color: Colors.white70)),
+              );
+            }
+
+            return Column(
+              children: [
+                // رأس القائمة
+                Container(
+                  height: 44,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.30),
+                    border: const Border(
+                        bottom: BorderSide(color: Color(0x22FFFFFF))),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: _popSmooth,
+                        tooltip: 'رجوع',
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _currentCategoryName ?? 'قنوات التصنيف',
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // القائمة
+                Expanded(
+                  child: ScrollbarTheme(
+                    data: ScrollbarThemeData(
+                      thumbVisibility: WidgetStateProperty.all(true),
+                      thickness: WidgetStateProperty.all(2.5),
+                      radius: const Radius.circular(8),
+                      trackColor: WidgetStateProperty.all(Colors.transparent),
+                      trackBorderColor:
+                          WidgetStateProperty.all(Colors.transparent),
+                      thumbColor: WidgetStateProperty.resolveWith(
+                        (states) => Colors.white.withValues(alpha: 0.22),
+                      ),
+                    ),
+                    child: Scrollbar(
+                      controller: _leftPaneScroll,
+                      child: ListView.separated(
+                        controller: _leftPaneScroll,
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        itemCount: channels.length,
+                        separatorBuilder: (_, __) => Divider(
+                            color: Colors.white.withValues(alpha: 0.07),
+                            height: 1),
+                        itemBuilder: (context, i) {
+                          final ch = channels[i];
+                          final bool isActive = ch.streamId == _currentStreamId;
+                          final bool isLoadingThis = _isSwitchingChannel &&
+                              ch.streamId == _currentStreamId;
+
+                          return ListTile(
+                            dense: true,
+                            visualDensity: const VisualDensity(
+                                horizontal: -2, vertical: -2),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            title: Text(
+                              ch.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isActive ? Colors.white : Colors.white70,
+                                fontSize: 13,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            // ignore: unnecessary_null_comparison
+                            subtitle: (ch.categoryId) != null
+                                ? Text(
+                                    (ch.categoryId),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        color: Colors.white54, fontSize: 11),
+                                  )
+                                : null,
+                            trailing: isActive
+                                ? (isLoadingThis
+                                    ? const SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
+                                    : const Icon(Icons.play_arrow,
+                                        color: Colors.white, size: 16))
+                                : const Icon(Icons.tv,
+                                    color: Colors.white54, size: 16),
+                            onTap: () async {
+                              if (isActive) return;
+                              await _switchLiveChannel(ch);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.of(context).size;
+    final ar = _lockedAspectRatio ?? (screen.width / screen.height);
+
+    // نحافظ على الصف دائمًا، ونغيّر عرض اللوحة/الفاصل فقط
+    const double kPaneMin = 200.0;
+    final double kPaneMax = (screen.width * 0.7).clamp(220.0, 520.0);
+    const double kDivider = 4.0;
+
+    final double leftW = _isLive && !_isFullscreen
+        ? _leftPaneWidth.clamp(kPaneMin, kPaneMax)
+        : 0.0;
+    final double dividerW = _isLive && !_isFullscreen ? kDivider : 0.0;
+
+    final rightPane = Column(
+      children: [
+        Expanded(child: _buildPlayerStack(ar)),
+        if (_isLive && !_isFullscreen) _buildChannelInfoBar(),
+      ],
+    );
+
+    final body = Focus(
+      focusNode: _screenKbFocus,
+      onKeyEvent: (node, event) {
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+        final key = event.logicalKey;
+        final isOk = key == LogicalKeyboardKey.select ||
+            key == LogicalKeyboardKey.enter ||
+            key == LogicalKeyboardKey.numpadEnter ||
+            key == LogicalKeyboardKey.space;
+
+        if (isOk) {
+          _toggleControls();
+          if (_showControls) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _playPauseFocus.requestFocus();
+            });
+          }
+          return KeyEventResult.handled;
+        }
+
+        if (_showControls && key == LogicalKeyboardKey.arrowUp) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _backButtonFocus.requestFocus();
+          });
+          return KeyEventResult.handled;
+        }
+
+        return KeyEventResult.ignored;
+      },
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: Row(
+          children: [
+            // اللوحة اليسرى (متحركة العرض لصفر)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              width: leftW,
+              child: leftW == 0
+                  ? const SizedBox.shrink()
+                  : Container(
+                      color: const Color(0xFF0E0E10),
+                      child: _buildLeftChannelsPane()),
+            ),
+            // الفاصل
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              width: dividerW,
+              color: dividerW == 0
+                  ? Colors.transparent
+                  : const Color.fromARGB(255, 218, 14, 14)
+                      .withValues(alpha: 0.06),
+              child: dividerW == 0
+                  ? null
+                  : GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onHorizontalDragUpdate: (d) {
+                        setState(() => _leftPaneWidth =
+                            (_leftPaneWidth + d.delta.dx)
+                                .clamp(kPaneMin, kPaneMax));
+                      },
+                    ),
+            ),
+            // اللوحة اليمنى
+            Expanded(child: rightPane),
+          ],
         ),
+      ),
+    );
+
+    // تأكد أن لديك: import 'dart:async' show unawaited;
+
+    return PopScope(
+      // امنع إغلاق الصفحة عندما نكون في البث المباشر وبوضع ملء الشاشة
+      canPop: !(_isLive && _isFullscreen),
+
+      // الصيغة الجديدة مع "النتيجة" (result) للـ pop
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (!didPop) {
+          // لم يحدث الرجوع لأن canPop=false → اخرج من الملء للشاشة فقط
+          if (_isLive && _isFullscreen) {
+            setState(() => _isFullscreen = false);
+          }
+          return;
+        }
+        // تم الرجوع فعلاً → أعد حالة النظام والاتجاه
+        _restoreSystemOrientationOnce(); // لا تنتظر هنا (callback غير async)
+      },
+
+      child: PlatformScaffold(
+        material: (_, __) =>
+            MaterialScaffoldData(backgroundColor: Colors.black),
+        cupertino: (_, __) =>
+            CupertinoPageScaffoldData(backgroundColor: Colors.black),
+        body: body,
       ),
     );
   }
 }
-

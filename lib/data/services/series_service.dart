@@ -1,5 +1,4 @@
 ﻿import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/data/models/series_model.dart';
 
@@ -10,6 +9,12 @@ class SeriesService {
 
   SeriesService(this.serverUrl, this.username, this.password);
 
+  // نفك JSON دائمًا من البايتات كـ UTF-8 لتجنّب مشاكل الترميز (Ø..Ù..)
+  dynamic _decodeUtf8(http.Response r) => jsonDecode(utf8.decode(r.bodyBytes));
+
+  // تنظيف النص: إزالة NUL وضمان كونه String
+  String _clean(Object? v) => (v?.toString() ?? '').replaceAll('\u0000', '');
+
   Future<Map<String, List<Map<String, dynamic>>>> getSeriesInfo(
     int seriesId,
   ) async {
@@ -19,31 +24,34 @@ class SeriesService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
+      final data = _decodeUtf8(response);
 
-      final episodesJson = json['episodes'] as Map<String, dynamic>?;
+      final episodesJson =
+          (data is Map<String, dynamic>) ? data['episodes'] as Map? : null;
 
-      if (episodesJson == null) {
-        return {};
-      }
+      if (episodesJson == null) return {};
 
       final Map<String, List<Map<String, dynamic>>> grouped = {};
 
       episodesJson.forEach((seasonKey, episodeList) {
         final season = seasonKey.toString();
-        final episodes = episodeList as List<dynamic>;
+        final episodes = (episodeList as List?) ?? const [];
 
         grouped[season] = episodes.map<Map<String, dynamic>>((episode) {
+          final m = episode as Map;
+          final id = _clean(m['id']);
+          final titleRaw = _clean(m['title']);
+          final title = titleRaw.isEmpty ? 'بدون عنوان' : titleRaw;
           return {
-            'id': episode['id'].toString(),
-            'title': episode['title'] ?? 'No Title',
+            'id': id,
+            'title': title,
           };
         }).toList();
       });
 
       return grouped;
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ù„Ù‚Ø§Øª");
+      throw Exception('فشل تحميل بيانات الحلقات (رمز ${response.statusCode})');
     }
   }
 
@@ -57,15 +65,14 @@ class SeriesService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
+      final jsonList = _decodeUtf8(response) as List;
       final paged = jsonList.skip(offset).take(limit).toList();
       return paged
-          .map(
-            (json) => SeriesModel.fromJson(json, serverUrl, username, password),
-          )
+          .map((json) =>
+              SeriesModel.fromJson(json, serverUrl, username, password))
           .toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„Ø§Øª");
+      throw Exception('فشل تحميل المسلسلات (رمز ${response.statusCode})');
     }
   }
 
@@ -80,18 +87,18 @@ class SeriesService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
+      final jsonList = _decodeUtf8(response) as List;
       final filtered = jsonList
-          .where((json) => json['category_id'].toString() == categoryId)
+          .where(
+              (json) => (json as Map)['category_id'].toString() == categoryId)
           .toList();
       final paged = filtered.skip(offset).take(limit).toList();
       return paged
-          .map(
-            (json) => SeriesModel.fromJson(json, serverUrl, username, password),
-          )
+          .map((json) =>
+              SeriesModel.fromJson(json, serverUrl, username, password))
           .toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ù…Ø³Ù„Ø³Ù„Ø§Øª Ø§Ù„ØªØµÙ†ÙŠÙ");
+      throw Exception('فشل تحميل مسلسلات التصنيف (رمز ${response.statusCode})');
     }
   }
 
@@ -102,18 +109,17 @@ class SeriesService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
-      return jsonList
-          .map<Map<String, String>>(
-            (json) => {
-              'id': json['category_id'].toString(),
-              'name': json['category_name'],
-            },
-          )
-          .toList();
+      final jsonList = _decodeUtf8(response) as List;
+      return jsonList.map<Map<String, String>>((json) {
+        final m = json as Map;
+        return {
+          'id': _clean(m['category_id']),
+          'name': _clean(m['category_name']),
+        };
+      }).toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ø³Ù„Ø³Ù„Ø§Øª");
+      throw Exception(
+          'فشل تحميل تصنيفات المسلسلات (رمز ${response.statusCode})');
     }
   }
 }
-

@@ -69,8 +69,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final message = difference.inDays >= 1
-        ? "Ø¨Ø§Ù‚ÙŠ ${difference.inDays} ÙŠÙˆÙ… Ø¹Ù„Ù‰ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ"
-        : "Ø¨Ø§Ù‚ÙŠ ${difference.inHours} Ø³Ø§Ø¹Ø© Ø¹Ù„Ù‰ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ";
+        ? "باقي ${difference.inDays} يوم على انتهاء الاشتراك"
+        : "باقي ${difference.inHours} ساعة على انتهاء الاشتراك";
 
     ref.read(timeLeftMessageProvider.notifier).state = message;
     ref.read(showSubscriptionAlertProvider.notifier).state = true;
@@ -83,8 +83,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final w = size.width;
     final h = size.height;
     final ar = h > 0 ? w / h : 0;
-    final isDesktop =
-        !kIsWeb &&
+    final isDesktop = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.windows ||
             defaultTargetPlatform == TargetPlatform.macOS ||
             defaultTargetPlatform == TargetPlatform.linux);
@@ -157,4 +156,3 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 }
-

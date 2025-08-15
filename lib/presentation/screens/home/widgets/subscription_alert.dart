@@ -57,7 +57,7 @@ class SubscriptionAlert extends ConsumerWidget {
                       isAndroid: isAndroid,
                       onPressed: _launchWhatsApp,
                       color: Colors.green,
-                      label: 'ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ',
+                      label: 'تجديد الاشتراك',
                     ),
                   ],
                 ),
@@ -108,7 +108,7 @@ class SubscriptionAlert extends ConsumerWidget {
 
   void _launchWhatsApp() async {
     const phone = '+9647718093023';
-    const message = 'Ø£Ø±ÙŠØ¯ ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ';
+    const message = 'أريد تجديد الاشتراك';
     final url = 'https://wa.me/$phone?text=${Uri.encodeComponent(message)}';
     await _openUrl(url);
   }
@@ -133,22 +133,21 @@ class _FocusElevatedButton extends StatelessWidget {
       onPressed: onPressed,
       child: Text(label),
       material: (_, __) => MaterialElevatedButtonData(
-        style:
-            ElevatedButton.styleFrom(
-              backgroundColor: color,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-            ).copyWith(
-              side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
-                if (isAndroid && states.contains(WidgetState.focused)) {
-                  return const BorderSide(color: Colors.redAccent, width: 2);
-                }
-                return null;
-              }),
-              elevation: WidgetStateProperty.resolveWith<double?>((states) {
-                if (isAndroid && states.contains(WidgetState.focused)) return 6;
-                return null;
-              }),
-            ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        ).copyWith(
+          side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
+            if (isAndroid && states.contains(WidgetState.focused)) {
+              return const BorderSide(color: Colors.redAccent, width: 2);
+            }
+            return null;
+          }),
+          elevation: WidgetStateProperty.resolveWith<double?>((states) {
+            if (isAndroid && states.contains(WidgetState.focused)) return 6;
+            return null;
+          }),
+        ),
       ),
       cupertino: (_, __) => CupertinoElevatedButtonData(
         color: color,
@@ -192,9 +191,8 @@ class _FocusableIconButtonState extends State<_FocusableIconButton> {
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          border: highlight
-              ? Border.all(color: Colors.redAccent, width: 2)
-              : null,
+          border:
+              highlight ? Border.all(color: Colors.redAccent, width: 2) : null,
         ),
         child: PlatformIconButton(
           icon: Icon(widget.icon, color: widget.color, size: 20),
@@ -215,4 +213,3 @@ class _FocusableIconButtonState extends State<_FocusableIconButton> {
     );
   }
 }
-

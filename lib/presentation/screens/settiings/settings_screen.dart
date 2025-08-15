@@ -83,7 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.color_lens, color: Colors.white),
                     title: const Text(
-                      "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
+                      "الوضع الداكن",
                       style: TextStyle(color: Colors.white),
                     ),
                     trailing: PlatformSwitch(
@@ -106,7 +106,7 @@ class SettingsScreen extends ConsumerWidget {
                       color: Colors.white,
                     ),
                     title: const Text(
-                      "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
+                      "الوضع الداكن",
                       style: TextStyle(color: Colors.white),
                     ),
                     trailing: PlatformSwitch(value: true, onChanged: (_) {}),
@@ -177,4 +177,3 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
-

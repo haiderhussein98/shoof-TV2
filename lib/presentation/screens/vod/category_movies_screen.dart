@@ -40,9 +40,9 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
   final Set<int> _focusedIds = <int>{};
 
   FocusNode _nodeFor(MovieModel m) => _focusMap.putIfAbsent(
-    m.streamId,
-    () => FocusNode(debugLabel: 'movie_${m.streamId}'),
-  );
+        m.streamId,
+        () => FocusNode(debugLabel: 'movie_${m.streamId}'),
+      );
 
   @override
   bool get wantKeepAlive => true;
@@ -68,9 +68,7 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
     _isLoading = true;
 
     try {
-      final newMovies = await ref
-          .read(vodServiceProvider)
-          .getMoviesByCategory(
+      final newMovies = await ref.read(vodServiceProvider).getMoviesByCategory(
             widget.categoryId,
             offset: _offset,
             limit: _limit,
@@ -160,17 +158,17 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
                   final filtered = query.isEmpty
                       ? _movies
                       : _movies
-                            .where(
-                              (m) => m.name.toLowerCase().contains(
-                                query.toLowerCase(),
-                              ),
-                            )
-                            .toList();
+                          .where(
+                            (m) => m.name.toLowerCase().contains(
+                                  query.toLowerCase(),
+                                ),
+                          )
+                          .toList();
 
                   if (filtered.isEmpty && !_isLoading) {
                     return const Center(
                       child: Text(
-                        'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙÙ„Ø§Ù….',
+                        'لم يتم العثور على أفلام.',
                         style: TextStyle(color: Colors.white70),
                       ),
                     );
@@ -211,9 +209,9 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
                                 MovieDetailsScreen(movie: movie),
                             transitionsBuilder: (_, animation, __, child) =>
                                 FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                ),
+                              opacity: animation,
+                              child: child,
+                            ),
                             transitionDuration: const Duration(
                               milliseconds: 300,
                             ),
@@ -306,8 +304,6 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
   }
 }
 
-/// Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø­Ø« Ø¨Ù†Ù…Ø· TV: ÙŠÙ…Ù†Ø¹ Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø±ÙŠÙ…ÙˆØª Ø¥Ù„Ø§ Ø¹Ù„Ù‰ Ø£Ù†Ø¯Ø±ÙˆÙŠØ¯ ÙÙ‚Ø·.
-/// Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙŠØ³ÙƒØªÙˆØ¨ ÙŠØ¨Ù‚Ù‰ Ø§Ù„Ø­Ù‚Ù„ Ù‚Ø§Ø¨Ù„Ø§Ù‹ Ù„Ù„ÙƒØªØ§Ø¨Ø© Ù…Ø¨Ø§Ø´Ø±Ø© Ø¨Ø§Ù„ÙƒÙŠØ¨ÙˆØ±Ø¯.
 class _SearchField extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSubmit;
@@ -399,7 +395,7 @@ class _SearchFieldState extends State<_SearchField> {
             cursorColor: Colors.white70,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙÙŠÙ„Ù…...',
+              hintText: 'ابحث عن فيلم...',
               hintStyle: const TextStyle(color: Colors.white54),
               filled: true,
               fillColor: Colors.grey[850],
@@ -424,4 +420,3 @@ class _SearchFieldState extends State<_SearchField> {
     );
   }
 }
-

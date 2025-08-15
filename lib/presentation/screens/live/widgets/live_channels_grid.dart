@@ -71,17 +71,17 @@ class LiveChannelsGrid extends StatelessWidget {
               final filtered = query.isEmpty
                   ? channels
                   : channels
-                        .where(
-                          (c) => c.name.toLowerCase().contains(
-                            query.toLowerCase(),
-                          ),
-                        )
-                        .toList();
+                      .where(
+                        (c) => c.name.toLowerCase().contains(
+                              query.toLowerCase(),
+                            ),
+                      )
+                      .toList();
 
               if (filtered.isEmpty) {
                 return const Center(
                   child: Text(
-                    'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù‚Ù†ÙˆØ§Øª.',
+                    'لم يتم العثور على قنوات.',
                     style: TextStyle(color: Colors.white70),
                   ),
                 );
@@ -113,4 +113,3 @@ class LiveChannelsGrid extends StatelessWidget {
     );
   }
 }
-

@@ -44,7 +44,7 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
+                content: Text('فشل تحميل تفاصيل الفيلم'),
                 backgroundColor: Colors.redAccent,
               ),
             );
@@ -83,4 +83,3 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
     );
   }
 }
-

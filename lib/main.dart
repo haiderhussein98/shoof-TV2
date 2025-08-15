@@ -25,11 +25,10 @@ Future<bool> _isAndroidTV() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  PaintingBinding.instance.imageCache.maximumSize = 100; // Ø¹Ø¯Ø¯ Ø§Ù„ØµÙˆØ±
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20; // ~60MB
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20;
 
-  final bool isDesktop =
-      !kIsWeb &&
+  final bool isDesktop = !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.windows ||
           defaultTargetPlatform == TargetPlatform.linux ||
           defaultTargetPlatform == TargetPlatform.macOS);
@@ -102,4 +101,3 @@ class _ShoofIPTVAppState extends State<ShoofIPTVApp>
     );
   }
 }
-

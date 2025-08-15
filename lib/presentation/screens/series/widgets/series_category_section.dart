@@ -151,8 +151,8 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                   onKeyEvent: (node, event) {
                     if (!isTv) return KeyEventResult.ignored;
                     if (event is KeyDownEvent) {
-                      final isSelect =
-                          event.logicalKey == LogicalKeyboardKey.enter ||
+                      final isSelect = event.logicalKey ==
+                              LogicalKeyboardKey.enter ||
                           event.logicalKey == LogicalKeyboardKey.select ||
                           event.logicalKey == LogicalKeyboardKey.space ||
                           event.logicalKey == LogicalKeyboardKey.numpadEnter;
@@ -192,7 +192,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                           ),
                           const SizedBox(width: 6),
                           const Text(
-                            "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„ÙƒÙ„",
+                            "مشاهدة الكل",
                             style: TextStyle(
                               color: Colors.redAccent,
                               fontSize: 13,
@@ -208,7 +208,6 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
             ),
           ),
 
-          // Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø£ÙÙ‚ÙŠØ©
           SizedBox(
             height: w > 600 ? 230 : 190,
             child: FutureBuilder<List<SeriesModel>>(
@@ -242,7 +241,6 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                 }
 
                 return FocusTraversalGroup(
-                  // ØªØ¹Ø·ÙŠÙ„ Ø§Ù„ØªØ±ÙƒÙŠØ² Ù„Ù„Ø°Ø±ÙŠÙ‘Ø§Øª Ø¹Ù„Ù‰ ØºÙŠØ± TV
                   descendantsAreFocusable: isTv,
                   policy: ReadingOrderTraversalPolicy(),
                   child: ListView.separated(
@@ -346,16 +344,16 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                                   placeholderFadeInDuration: Duration.zero,
                                   placeholder: (context, url) =>
                                       const ColoredBox(
-                                        color: Colors.black12,
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      ),
+                                    color: Colors.black12,
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
                                   errorWidget: (context, url, error) =>
                                       const Icon(
-                                        Icons.error,
-                                        color: Colors.red,
-                                      ),
+                                    Icons.error,
+                                    color: Colors.red,
+                                  ),
                                 ),
                               ),
                             ),
@@ -373,4 +371,3 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
     );
   }
 }
-

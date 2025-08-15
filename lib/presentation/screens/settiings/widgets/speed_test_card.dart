@@ -153,7 +153,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
     final variance = samples.isEmpty
         ? 0.0
         : samples.map((v) => (v - mean) * (v - mean)).reduce((a, b) => a + b) /
-              samples.length;
+            samples.length;
     final stddev = sqrt(variance);
     if (!mounted) return;
     setState(() {
@@ -175,12 +175,12 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
       if (!mounted) return;
       setState(() {
         _bps = best;
-        if (best == 0) _error = 'ØªØ¹Ø°Ù‘Ø± Ø§Ù„Ù‚ÙŠØ§Ø³. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø´Ø¨ÙƒØ©.';
+        if (best == 0) _error = 'تعذّر القياس. تحقق من الشبكة.';
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'ØªØ¹Ø°Ù‘Ø± Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±';
+        _error = 'تعذّر الاختبار';
       });
     } finally {
       if (mounted) {
@@ -263,7 +263,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     SizedBox(
                       width: narrow ? double.infinity : null,
                       child: Text(
-                        'Ø§Ø®ØªØ¨Ø§Ø± Ø³Ø±Ø¹Ø© Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª (ØªÙ†Ø²ÙŠÙ„)',
+                        'اختبار سرعة الإنترنت (تنزيل)',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: narrow ? TextAlign.start : TextAlign.left,
@@ -284,7 +284,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                           children: const [
                             Icon(Icons.refresh, size: 18),
                             SizedBox(width: 6),
-                            Text('Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±'),
+                            Text('إعادة الاختبار'),
                           ],
                         ),
                         material: (_, __) => MaterialElevatedButtonData(
@@ -313,9 +313,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     ),
                   ],
                 ),
-
                 SizedBox(height: narrow ? 10 : 12),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -338,17 +336,17 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                                     child: PlatformCircularProgressIndicator(
                                       material: (_, __) =>
                                           MaterialProgressIndicatorData(
-                                            strokeWidth: 2,
-                                          ),
+                                        strokeWidth: 2,
+                                      ),
                                       cupertino: (_, __) =>
                                           CupertinoProgressIndicatorData(
-                                            radius: 10,
-                                          ),
+                                        radius: 10,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Ø¬Ø§Ø±Ù Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±...',
+                                    'جارِ الاختبار...',
                                     style: TextStyle(
                                       color: Colors.white70,
                                       fontSize: sizes.label,
@@ -372,9 +370,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     ),
                   ],
                 ),
-
                 SizedBox(height: narrow ? 6 : 8),
-
                 Wrap(
                   spacing: 16,
                   runSpacing: 8,
@@ -424,11 +420,9 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     ),
                   ],
                 ),
-
                 SizedBox(height: narrow ? 8 : 10),
-
                 Text(
-                  'Ø§Ù„Ù‚ÙŠÙ…Ø© ØªÙ‚Ø¯ÙŠØ±ÙŠØ© Ù„Ø£Ù‚ØµÙ‰ Ø³Ø±Ø¹Ø© ØªÙ†Ø²ÙŠÙ„ Ø®Ù„Ø§Ù„ ${_testDuration.inSeconds} Ø«ÙˆØ§Ù†Ù. Ping = Ø²Ù…Ù† Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©ØŒ Jitter = ØªØ°Ø¨Ø°Ø¨ Ø§Ù„ØªØ£Ø®ÙŠØ±.',
+                  'القيمة تقديرية لأقصى سرعة تنزيل خلال ${_testDuration.inSeconds} ثوانٍ. Ping = زمن الاستجابة، Jitter = تذبذب التأخير.',
                   style: TextStyle(
                     color: Colors.white38,
                     fontSize: sizes.label,
@@ -443,4 +437,3 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
     );
   }
 }
-

@@ -29,14 +29,14 @@ class SubscriptionInfoCard extends StatelessWidget {
             context,
             materialIcon: Icons.calendar_today,
             cupertinoIcon: CupertinoIcons.calendar,
-            title: 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©',
+            title: 'تاريخ البداية',
             value: startDate,
           ),
           _buildBox(
             context,
             materialIcon: Icons.event,
             cupertinoIcon: CupertinoIcons.calendar,
-            title: 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡',
+            title: 'تاريخ الانتهاء',
             value: endDate,
           ),
         ],
@@ -74,4 +74,3 @@ class SubscriptionInfoCard extends StatelessWidget {
     );
   }
 }
-

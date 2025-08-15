@@ -34,13 +34,13 @@ final userInfoInitializerProvider = FutureProvider<void>((ref) async {
       final diffDays = expDate.difference(createdAt).inDays;
 
       if (diffDays <= 31) {
-        ref.read(subscriptionTypeProvider.notifier).state = 'ØªØ¬Ø±ÙŠØ¨ÙŠ';
+        ref.read(subscriptionTypeProvider.notifier).state = 'تجريبي';
       } else if (diffDays <= 93) {
-        ref.read(subscriptionTypeProvider.notifier).state = '3 Ø£Ø´Ù‡Ø±';
+        ref.read(subscriptionTypeProvider.notifier).state = '3 اشهر';
       } else if (diffDays <= 186) {
-        ref.read(subscriptionTypeProvider.notifier).state = '6 Ø£Ø´Ù‡Ø±';
+        ref.read(subscriptionTypeProvider.notifier).state = '6 اشهر';
       } else {
-        ref.read(subscriptionTypeProvider.notifier).state = 'Ø³Ù†Ø©';
+        ref.read(subscriptionTypeProvider.notifier).state = 'سنة';
       }
     } else {}
   } catch (e) {
@@ -48,4 +48,3 @@ final userInfoInitializerProvider = FutureProvider<void>((ref) async {
     rethrow;
   }
 });
-

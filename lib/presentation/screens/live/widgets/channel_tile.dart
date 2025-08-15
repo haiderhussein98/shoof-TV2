@@ -1,7 +1,6 @@
 ﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/core/responsive.dart';
 import 'package:shoof_tv/domain/providers/live_providers.dart';
@@ -17,6 +16,30 @@ class ChannelTile extends ConsumerWidget {
   double _clamp(double v, double lo, double hi) =>
       v.clamp(math.min(lo, hi), math.max(lo, hi)).toDouble();
 
+  Route<T> _smoothRoute<T>(Widget page) {
+    return PageRouteBuilder<T>(
+      transitionDuration: const Duration(milliseconds: 260),
+      reverseTransitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, anim, secAnim) => page,
+      transitionsBuilder: (context, anim, secAnim, child) {
+        final curved =
+            CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+        final fade = curved;
+        final slide =
+            Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero)
+                .animate(curved);
+        final scale = Tween<double>(begin: 0.98, end: 1.0).animate(curved);
+        return FadeTransition(
+          opacity: fade,
+          child: SlideTransition(
+            position: slide,
+            child: ScaleTransition(scale: scale, child: child),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final api = ref.watch(liveServiceProvider);
@@ -24,9 +47,8 @@ class ChannelTile extends ConsumerWidget {
     void defaultNavigate() {
       final navigator = Navigator.of(context);
       navigator.push(
-        platformPageRoute(
-          context: context,
-          builder: (_) => LivePlayerScreen(
+        _smoothRoute(
+          LivePlayerScreen(
             serverUrl: api.serverUrl,
             username: api.username,
             password: api.password,
@@ -152,4 +174,3 @@ class ChannelTile extends ConsumerWidget {
     );
   }
 }
-

@@ -21,7 +21,7 @@ class LiveViewModel extends StateNotifier<LiveState> {
 
       final allOption = {
         'id': 'all',
-        'name': 'Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„ (${allChannels.length})',
+        'name': 'عرض الكل (${allChannels.length})',
       };
 
       state = state.copyWith(
@@ -104,4 +104,3 @@ final liveViewModelProvider = StateNotifierProvider<LiveViewModel, LiveState>((
 ) {
   return LiveViewModel(ref);
 });
-

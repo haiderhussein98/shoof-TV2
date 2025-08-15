@@ -9,6 +9,12 @@ class VodService {
 
   VodService(this.serverUrl, this.username, this.password);
 
+  // فك JSON دائمًا من البايتات كـ UTF-8 لتجنّب "Ø..Ù.."
+  dynamic _decodeUtf8(http.Response r) => jsonDecode(utf8.decode(r.bodyBytes));
+
+  // تنظيف النص: إزالة NUL وضمان كونه String
+  String _clean(Object? v) => (v?.toString() ?? '').replaceAll('\u0000', '');
+
   Future<List<MovieModel>> getVOD({
     required int offset,
     int limit = 300,
@@ -20,24 +26,27 @@ class VodService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
+      final jsonList = _decodeUtf8(response) as List;
 
-      final filteredList = searchQuery != null && searchQuery.trim().isNotEmpty
+      // فلترة البحث (بعد تنظيف الاسم)
+      final q = (searchQuery ?? '').trim().toLowerCase();
+      final filteredList = q.isNotEmpty
           ? jsonList.where((json) {
-              final name = (json['name'] ?? '').toString().toLowerCase();
-              return name.contains(searchQuery.toLowerCase());
+              final name = _clean((json as Map)['name']).toLowerCase();
+              return name.contains(q);
             }).toList()
           : jsonList;
 
       final paged = filteredList.skip(offset).take(limit).toList();
 
-      return paged
-          .map(
-            (json) => MovieModel.fromJson(json, serverUrl, username, password),
-          )
-          .toList();
+      // تنظيف الاسم قبل تمريره للموديل لضمان عرض صحيح
+      return paged.map((j) {
+        final m = Map<String, dynamic>.from(j as Map);
+        m['name'] = _clean(m['name']);
+        return MovieModel.fromJson(m, serverUrl, username, password);
+      }).toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙÙ„Ø§Ù….");
+      throw Exception('فشل تحميل الأفلام (رمز ${response.statusCode})');
     }
   }
 
@@ -49,36 +58,44 @@ class VodService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      final info = json['info'];
-      if (info == null) throw Exception("Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ØºÙŠØ± Ù…ØªÙˆÙØ±Ø©");
+      final data = _decodeUtf8(response) as Map;
 
-      final name = info['name'] ?? 'Unknown';
-      final image = info['movie_image'] ?? '';
-      final containerExtension = info['container_extension'] ?? 'mkv';
-      final releaseDate = info['releasedate'] ?? info['Release Date'] ?? '';
-      final duration = info['duration'] ?? '';
-      final cast = info['cast'] ?? '';
-      final director = info['director'] ?? '';
-      final description = info['plot'] ?? '';
-      final youtubeTrailer = info['youtube_trailer'] ?? '';
-      final rating = info['rating']?.toString() ?? '';
+      final info = data['info'] as Map?;
+      if (info == null) {
+        throw Exception('البيانات غير متوفرة');
+      }
 
-      final realStreamUrl = info['movie_data']?['stream_url'];
+      final name = _clean(info['name']);
+      final image = _clean(info['movie_image']);
+      final containerExtension = _clean(info['container_extension']).isEmpty
+          ? 'mkv'
+          : _clean(info['container_extension']);
+
+      final releaseDate = _clean(info['releasedate'] ?? info['Release Date']);
+      final duration = _clean(info['duration']);
+      final cast = _clean(info['cast']);
+      final director = _clean(info['director']);
+      final description = _clean(info['plot']);
+      final youtubeTrailer = _clean(info['youtube_trailer']);
+      final rating = _clean(info['rating']);
+
+      final realStreamUrl = _clean((info['movie_data'] as Map?)?['stream_url']);
       final fallbackStreamUrl =
           '$serverUrl/movie/$username/$password/$streamId.$containerExtension';
 
       String workingUrl = fallbackStreamUrl;
-      if (realStreamUrl != null && realStreamUrl.isNotEmpty) {
+      if (realStreamUrl.isNotEmpty) {
         try {
           final headResp = await http.head(Uri.parse(realStreamUrl));
           if (headResp.statusCode == 200) {
             workingUrl = realStreamUrl;
           }
-        } catch (_) {}
+        } catch (_) {
+          // تجاهل الخطأ، استخدم رابط fallback
+        }
       }
 
-      final movieMap = {
+      final movieMap = <String, dynamic>{
         'stream_id': streamId,
         'name': name,
         'stream_type': 'movie',
@@ -98,7 +115,7 @@ class VodService {
 
       return MovieModel.fromJson(movieMap, serverUrl, username, password);
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ÙÙŠÙ„Ù…");
+      throw Exception('فشل تحميل بيانات الفيلم (رمز ${response.statusCode})');
     }
   }
 
@@ -113,18 +130,20 @@ class VodService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
+      final jsonList = _decodeUtf8(response) as List;
       final filtered = jsonList
-          .where((json) => json['category_id'].toString() == categoryId)
+          .where(
+              (json) => (json as Map)['category_id'].toString() == categoryId)
           .toList();
       final paged = filtered.skip(offset).take(limit).toList();
-      return paged
-          .map(
-            (json) => MovieModel.fromJson(json, serverUrl, username, password),
-          )
-          .toList();
+
+      return paged.map((j) {
+        final m = Map<String, dynamic>.from(j as Map);
+        m['name'] = _clean(m['name']);
+        return MovieModel.fromJson(m, serverUrl, username, password);
+      }).toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø£ÙÙ„Ø§Ù… Ø§Ù„ØªØµÙ†ÙŠÙ");
+      throw Exception('فشل تحميل أفلام التصنيف (رمز ${response.statusCode})');
     }
   }
 
@@ -135,17 +154,16 @@ class VodService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
-      return jsonList
-          .map<Map<String, String>>(
-            (json) => {
-              'id': json['category_id'].toString(),
-              'name': json['category_name'],
-            },
-          )
-          .toList();
+      final jsonList = _decodeUtf8(response) as List;
+      return jsonList.map<Map<String, String>>((json) {
+        final m = json as Map;
+        return {
+          'id': _clean(m['category_id']),
+          'name': _clean(m['category_name']),
+        };
+      }).toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªØµÙ†ÙŠÙØ§Øª VOD");
+      throw Exception('فشل تحميل تصنيفات VOD (رمز ${response.statusCode})');
     }
   }
 
@@ -160,19 +178,21 @@ class VodService {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final jsonList = jsonDecode(response.body) as List;
+      final jsonList = _decodeUtf8(response) as List;
       final related = jsonList
-          .where((json) => json['category_id'].toString() == categoryId)
+          .where(
+              (json) => (json as Map)['category_id'].toString() == categoryId)
           .toList();
       final paged = related.skip(offset).take(limit).toList();
-      return paged
-          .map(
-            (json) => MovieModel.fromJson(json, serverUrl, username, password),
-          )
-          .toList();
+
+      return paged.map((j) {
+        final m = Map<String, dynamic>.from(j as Map);
+        m['name'] = _clean(m['name']);
+        return MovieModel.fromJson(m, serverUrl, username, password);
+      }).toList();
     } else {
-      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙÙ„Ø§Ù… Ø§Ù„Ù…Ø´Ø§Ø¨Ù‡Ø©");
+      throw Exception(
+          'فشل تحميل الأفلام المشابهة (رمز ${response.statusCode})');
     }
   }
 }
-

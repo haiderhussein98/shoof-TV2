@@ -9,7 +9,7 @@ class SeriesOverviewTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return PlatformWidget(
       material: (_, __) => const Text(
-        "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„",
+        "تفاصيل المسلسل",
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
@@ -17,7 +17,7 @@ class SeriesOverviewTitle extends StatelessWidget {
         ),
       ),
       cupertino: (_, __) => const Text(
-        "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„",
+        "تفاصيل المسلسل",
         style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,
@@ -35,7 +35,7 @@ class SeriesOverviewText extends StatelessWidget {
   const SeriesOverviewText({super.key, required this.series, this.maxLines});
 
   String _fallback(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'ØºÙŠØ± Ù…ØªÙˆÙØ±' : v.trim();
+      (v == null || v.trim().isEmpty) ? 'غير متوفر' : v.trim();
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class SeriesOverviewText extends StatelessWidget {
         children: [
           if (overviewWidget is! SizedBox) ...[
             const Text(
-              "Ø§Ù„Ù‚ØµØ©:",
+              "القصة:",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -104,11 +104,11 @@ class SeriesOverviewText extends StatelessWidget {
             overviewWidget,
             const SizedBox(height: 10),
           ],
-          line("Ø§Ù„Ù†ÙˆØ¹", genre),
-          line("Ø§Ù„Ù…Ø®Ø±Ø¬", director),
-          line("Ø§Ù„Ø£Ø¨Ø·Ø§Ù„", cast),
-          line("Ø§Ù„ØªÙ‚ÙŠÙŠÙ…", rating),
-          line("ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥ØµØ¯Ø§Ø±", release),
+          line("النوع", genre),
+          line("المخرج", director),
+          line("الأبطال", cast),
+          line("التقييم", rating),
+          line("تاريخ الإصدار", release),
         ],
       ),
       cupertino: (_, __) => Column(
@@ -116,7 +116,7 @@ class SeriesOverviewText extends StatelessWidget {
         children: [
           if (overviewWidget is! SizedBox) ...[
             const Text(
-              "Ø§Ù„Ù‚ØµØ©:",
+              "القصة:",
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -126,14 +126,13 @@ class SeriesOverviewText extends StatelessWidget {
             overviewWidget,
             const SizedBox(height: 10),
           ],
-          line("Ø§Ù„Ù†ÙˆØ¹", genre),
-          line("Ø§Ù„Ù…Ø®Ø±Ø¬", director),
-          line("Ø§Ù„Ø£Ø¨Ø·Ø§Ù„", cast),
-          line("Ø§Ù„ØªÙ‚ÙŠÙŠÙ…", rating),
-          line("ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥ØµØ¯Ø§Ø±", release),
+          line("النوع", genre),
+          line("المخرج", director),
+          line("الأبطال", cast),
+          line("التقييم", rating),
+          line("تاريخ الإصدار", release),
         ],
       ),
     );
   }
 }
-

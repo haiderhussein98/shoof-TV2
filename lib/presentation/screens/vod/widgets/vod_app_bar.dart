@@ -96,9 +96,8 @@ class VodAppBar extends StatelessWidget implements PreferredSizeWidget {
                     vertical: 8,
                   ),
                   child: Directionality(
-                    textDirection: isRtl
-                        ? TextDirection.rtl
-                        : TextDirection.ltr,
+                    textDirection:
+                        isRtl ? TextDirection.rtl : TextDirection.ltr,
                     child: _VodSearchField(
                       controller: controller,
                       isSearching: isSearching,
@@ -239,7 +238,7 @@ class _VodSearchFieldState extends State<_VodSearchField> {
         cursorColor: Colors.white70,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: widget.isRtl ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙÙŠÙ„Ù…...' : 'Search movies...',
+          hintText: widget.isRtl ? 'ابحث عن فيلم...' : 'Search movies...',
           hintStyle: const TextStyle(color: Colors.white60),
           filled: true,
           fillColor: const Color(0xFF1E1F25),
@@ -276,4 +275,3 @@ class _VodSearchFieldState extends State<_VodSearchField> {
     );
   }
 }
-

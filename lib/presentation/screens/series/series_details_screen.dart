@@ -79,9 +79,8 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
           username: api.username,
           password: api.password,
           episodeId: episodeId,
-          containerExtension: containerExtension.isNotEmpty
-              ? containerExtension
-              : 'mkv',
+          containerExtension:
+              containerExtension.isNotEmpty ? containerExtension : 'mkv',
           title: episodeName,
         ),
       ),
@@ -119,7 +118,7 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
           if (snapshot.hasError) {
             return const Center(
               child: Text(
-                'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„',
+                'حدث خطأ أثناء تحميل تفاصيل المسلسل',
                 style: TextStyle(color: Colors.redAccent),
               ),
             );
@@ -128,7 +127,7 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ù„Ù‚Ø§Øª Ù…ØªØ§Ø­Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ù„Ø³Ù„',
+                'لا توجد حلقات متاحة لهذا المسلسل',
                 style: TextStyle(color: Colors.white),
               ),
             );
@@ -156,11 +155,10 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
                     final firstEpisode = firstSeason.value.first;
                     final id = int.tryParse(firstEpisode['id'].toString()) ?? 0;
                     final name = (firstEpisode['title'] ?? '').toString();
-                    final ext =
-                        (firstEpisode['container_extension'] ??
-                                firstEpisode['containerExtension'] ??
-                                '')
-                            .toString();
+                    final ext = (firstEpisode['container_extension'] ??
+                            firstEpisode['containerExtension'] ??
+                            '')
+                        .toString();
                     _playEpisode(
                       context: context,
                       episodeId: id,
@@ -252,4 +250,3 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
     );
   }
 }
-

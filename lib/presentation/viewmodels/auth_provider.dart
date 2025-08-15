@@ -88,9 +88,8 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
     ref!.read(subscriptionEndProvider.notifier).state = DateTime.now().add(
       const Duration(days: 90),
     );
-    ref!.refresh(subscriptionTypeProvider.notifier).state = "ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ";
+    ref!.refresh(subscriptionTypeProvider.notifier).state = 'غير معروف';
 
     state = const AsyncValue.data(false);
   }
 }
-

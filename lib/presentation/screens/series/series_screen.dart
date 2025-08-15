@@ -48,9 +48,8 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
     if (mounted) {
       setState(() {
         _isSearching = true;
-        _searchResults = ref
-            .read(seriesViewModelProvider)
-            .searchSeries(trimmedQuery);
+        _searchResults =
+            ref.read(seriesViewModelProvider).searchSeries(trimmedQuery);
       });
     }
   }
@@ -103,7 +102,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text(
-                      'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª',
+                      'فشل تحميل التصنيفات',
                       style: TextStyle(color: Colors.white),
                     ),
                   );
@@ -209,7 +208,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
         if (snap.hasError) {
           return const Center(
             child: Text(
-              'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø¨Ø­Ø«',
+              'حدث خطأ أثناء البحث',
               style: TextStyle(color: Colors.white),
             ),
           );
@@ -218,7 +217,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
         if (results.isEmpty) {
           return const Center(
             child: Text(
-              'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬',
+              'لا توجد نتائج',
               style: TextStyle(color: Colors.white70),
             ),
           );
@@ -331,4 +330,3 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
     );
   }
 }
-

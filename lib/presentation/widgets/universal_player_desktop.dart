@@ -33,28 +33,28 @@ class UniversalPlayerDesktop extends StatefulWidget {
     required this.username,
     required this.password,
     required this.streamId,
-  }) : type = DesktopContentType.live,
-       movieUrl = null,
-       serverUrlSeries = null,
-       usernameSeries = null,
-       passwordSeries = null,
-       episodeId = null,
-       containerExtension = null;
+  })  : type = DesktopContentType.live,
+        movieUrl = null,
+        serverUrlSeries = null,
+        usernameSeries = null,
+        passwordSeries = null,
+        episodeId = null,
+        containerExtension = null;
 
   const UniversalPlayerDesktop.movie({
     super.key,
     required this.title,
     required this.movieUrl,
-  }) : type = DesktopContentType.movie,
-       serverUrl = null,
-       username = null,
-       password = null,
-       streamId = null,
-       serverUrlSeries = null,
-       usernameSeries = null,
-       passwordSeries = null,
-       episodeId = null,
-       containerExtension = null;
+  })  : type = DesktopContentType.movie,
+        serverUrl = null,
+        username = null,
+        password = null,
+        streamId = null,
+        serverUrlSeries = null,
+        usernameSeries = null,
+        passwordSeries = null,
+        episodeId = null,
+        containerExtension = null;
 
   const UniversalPlayerDesktop.series({
     super.key,
@@ -64,12 +64,12 @@ class UniversalPlayerDesktop extends StatefulWidget {
     required this.passwordSeries,
     required this.episodeId,
     required this.containerExtension,
-  }) : type = DesktopContentType.series,
-       serverUrl = null,
-       username = null,
-       password = null,
-       streamId = null,
-       movieUrl = null;
+  })  : type = DesktopContentType.series,
+        serverUrl = null,
+        username = null,
+        password = null,
+        streamId = null,
+        movieUrl = null;
 
   @override
   State<UniversalPlayerDesktop> createState() => _UniversalPlayerDesktopState();
@@ -144,12 +144,11 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
   }
 
   Map<String, String> get _seriesHeaders => const {
-    'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-        'AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/124.0.0.0 Safari/537.36',
-    'Connection': 'keep-alive',
-  };
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+            'AppleWebKit/537.36 (KHTML, like Gecko) '
+            'Chrome/124.0.0.0 Safari/537.36',
+        'Connection': 'keep-alive',
+      };
 
   String get _seriesResumeKey =>
       'series_resume_${_normalizedServerSeries}_${widget.episodeId}';
@@ -223,8 +222,7 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
     _vodisOpening = true;
 
     final prefs = await SharedPreferences.getInstance();
-    final saved =
-        prefs.getInt(
+    final saved = prefs.getInt(
           widget.type == DesktopContentType.series
               ? _seriesResumeKey
               : _movieResumeKey,
@@ -334,8 +332,7 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final saved =
-          prefs.getInt(
+      final saved = prefs.getInt(
             widget.type == DesktopContentType.series
                 ? _seriesResumeKey
                 : _movieResumeKey,
@@ -472,7 +469,7 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
           color = Colors.orange;
         }
         return Tooltip(
-          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
+          message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
           child: Icon(icon, color: color, size: 26),
         );
       },
@@ -511,7 +508,6 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
       body: Stack(
         children: [
           Video(controller: _video, fit: BoxFit.contain),
-
           Positioned.fill(
             child: Listener(
               behavior: HitTestBehavior.translucent,
@@ -519,7 +515,6 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
               child: const SizedBox.expand(),
             ),
           ),
-
           Positioned(
             top: 16,
             left: 16,
@@ -541,7 +536,6 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
               ),
             ),
           ),
-
           if (widget.type == DesktopContentType.live && _liveshowControls)
             Positioned(
               bottom: 20,
@@ -579,7 +573,6 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
                 ),
               ),
             ),
-
           Positioned(
             bottom: 30,
             right: 60,
@@ -588,11 +581,10 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
               child: Image.asset('assets/images/logo.png', width: 40),
             ),
           ),
-
           if (_hasError)
             const Center(
               child: Text(
-                "Ø§Ù†Ù‚Ø·Ø¹ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø´ØºÙ‘Ù„... ØªØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©",
+                "انقطع الاتصال بالمشغّل... تتم إعادة المحاولة",
                 style: TextStyle(color: Colors.redAccent, fontSize: 16),
               ),
             ),
@@ -601,4 +593,3 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
     );
   }
 }
-

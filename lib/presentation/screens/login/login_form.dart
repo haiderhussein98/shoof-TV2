@@ -57,7 +57,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         platformPageRoute(context: context, builder: (_) => const HomeScreen()),
       );
     } else {
-      setState(() => error = "ØªØ¹Ø°Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª.");
+      setState(() => error = "تعذر تسجيل الدخول. تحقق من المعلومات.");
     }
   }
 
@@ -78,12 +78,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           Text(
             "SHOOF.TV",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
           const SizedBox(height: 22),
-
           _buildTextField(
             controller: serverController,
             hint: "Server",
@@ -91,7 +90,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             onSubmitted: (_) => _usernameFocus.requestFocus(),
           ),
           const SizedBox(height: 12),
-
           _buildTextField(
             controller: usernameController,
             hint: "Username",
@@ -100,7 +98,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             onSubmitted: (_) => _passwordFocus.requestFocus(),
           ),
           const SizedBox(height: 12),
-
           _buildTextField(
             controller: passwordController,
             hint: "Password",
@@ -110,7 +107,6 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 18),
-
           loading
               ? const CircularProgressIndicator()
               : SizedBox(
@@ -134,14 +130,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   ),
                 ),
           const SizedBox(height: 10),
-
           if (error != null)
             Text(
               error!,
               style: const TextStyle(color: Colors.redAccent),
               textAlign: TextAlign.center,
             ),
-
           const SizedBox(height: 8),
         ],
       ),
@@ -338,9 +332,8 @@ class _TvTextFieldState extends State<_TvTextField> {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: _wrapperNode.hasFocus
-                  ? Colors.redAccent
-                  : Colors.transparent,
+              color:
+                  _wrapperNode.hasFocus ? Colors.redAccent : Colors.transparent,
               width: 2,
             ),
           ),
@@ -353,4 +346,3 @@ class _TvTextFieldState extends State<_TvTextField> {
     );
   }
 }
-

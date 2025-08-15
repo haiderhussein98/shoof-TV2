@@ -22,7 +22,7 @@ class LiveSearchBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isRtl = _isRTL(context);
-    final hint = isRtl ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù‚Ù†Ø§Ø©...' : 'Search channels...';
+    final hint = isRtl ? 'ابحث عن القناة...' : 'Search channels...';
 
     Future<void> clearAndReload() async {
       controller.clear();
@@ -116,4 +116,3 @@ class LiveSearchBar extends ConsumerWidget {
     );
   }
 }
-

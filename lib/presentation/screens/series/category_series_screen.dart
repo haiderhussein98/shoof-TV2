@@ -69,13 +69,12 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
     _isLoading = true;
 
     try {
-      final newItems = await ref
-          .read(seriesServiceProvider)
-          .getSeriesByCategory(
-            widget.categoryId,
-            offset: _offset,
-            limit: _limit,
-          );
+      final newItems =
+          await ref.read(seriesServiceProvider).getSeriesByCategory(
+                widget.categoryId,
+                offset: _offset,
+                limit: _limit,
+              );
 
       if (!mounted) return;
 
@@ -178,8 +177,8 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                   onKeyEvent: (node, event) {
                     if (!isTv) return KeyEventResult.ignored;
                     if (event is KeyDownEvent) {
-                      final isEnter =
-                          event.logicalKey == LogicalKeyboardKey.enter ||
+                      final isEnter = event.logicalKey ==
+                              LogicalKeyboardKey.enter ||
                           event.logicalKey == LogicalKeyboardKey.select ||
                           event.logicalKey == LogicalKeyboardKey.numpadEnter ||
                           event.logicalKey == LogicalKeyboardKey.space;
@@ -202,8 +201,9 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                     duration: const Duration(milliseconds: 120),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border:
-                          isTv && !_searchEnabled && Focus.of(context).hasFocus
+                      border: isTv &&
+                              !_searchEnabled &&
+                              Focus.of(context).hasFocus
                           ? Border.all(
                               color: Colors.redAccent.withValues(alpha: 0.2),
                               width: 2,
@@ -219,9 +219,8 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                         readOnly: isTv ? !_searchEnabled : false,
                         onChanged: (val) => _searchQuery.value = val,
                         decoration: InputDecoration(
-                          hintText: isRtl
-                              ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³Ù„Ø³Ù„...'
-                              : 'Search series...',
+                          hintText:
+                              isRtl ? 'ابحث عن مسلسل...' : 'Search series...',
                           hintStyle: const TextStyle(color: Colors.white54),
                           filled: true,
                           fillColor: Colors.grey[850],
@@ -248,12 +247,12 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                   final filtered = query.isEmpty
                       ? _seriesList
                       : _seriesList
-                            .where(
-                              (s) => s.name.toLowerCase().contains(
-                                query.toLowerCase(),
-                              ),
-                            )
-                            .toList();
+                          .where(
+                            (s) => s.name.toLowerCase().contains(
+                                  query.toLowerCase(),
+                                ),
+                          )
+                          .toList();
 
                   if (filtered.isEmpty && !_isLoading) {
                     return const Center(
@@ -289,7 +288,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
 
                   return FocusTraversalGroup(
                     policy: ReadingOrderTraversalPolicy(),
-                    descendantsAreFocusable: isTv, // ØªØ¹Ø·ÙŠÙ„ Ø§Ù„ØªØ±ÙƒÙŠØ² Ø¥Ù† Ù„Ù… ØªÙƒÙ† TV
+                    descendantsAreFocusable: isTv,
                     child: GridView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -355,21 +354,21 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                                           SeriesDetailsScreen(series: series),
                                       transitionsBuilder:
                                           (_, animation, __, child) {
-                                            final curved = CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeOutCubic,
-                                            );
-                                            return FadeTransition(
-                                              opacity: curved,
-                                              child: ScaleTransition(
-                                                scale: Tween<double>(
-                                                  begin: 0.98,
-                                                  end: 1,
-                                                ).animate(curved),
-                                                child: child,
-                                              ),
-                                            );
-                                          },
+                                        final curved = CurvedAnimation(
+                                          parent: animation,
+                                          curve: Curves.easeOutCubic,
+                                        );
+                                        return FadeTransition(
+                                          opacity: curved,
+                                          child: ScaleTransition(
+                                            scale: Tween<double>(
+                                              begin: 0.98,
+                                              end: 1,
+                                            ).animate(curved),
+                                            child: child,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   );
                                   return null;
@@ -403,21 +402,21 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                                         SeriesDetailsScreen(series: series),
                                     transitionsBuilder:
                                         (_, animation, __, child) {
-                                          final curved = CurvedAnimation(
-                                            parent: animation,
-                                            curve: Curves.easeOutCubic,
-                                          );
-                                          return FadeTransition(
-                                            opacity: curved,
-                                            child: ScaleTransition(
-                                              scale: Tween<double>(
-                                                begin: 0.98,
-                                                end: 1,
-                                              ).animate(curved),
-                                              child: child,
-                                            ),
-                                          );
-                                        },
+                                      final curved = CurvedAnimation(
+                                        parent: animation,
+                                        curve: Curves.easeOutCubic,
+                                      );
+                                      return FadeTransition(
+                                        opacity: curved,
+                                        child: ScaleTransition(
+                                          scale: Tween<double>(
+                                            begin: 0.98,
+                                            end: 1,
+                                          ).animate(curved),
+                                          child: child,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 );
                               },
@@ -452,16 +451,16 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) =>
                                         const ColoredBox(
-                                          color: Colors.black12,
-                                          child: Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                        ),
+                                      color: Colors.black12,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
                                     errorWidget: (context, url, error) =>
                                         const Icon(
-                                          Icons.error,
-                                          color: Colors.red,
-                                        ),
+                                      Icons.error,
+                                      color: Colors.red,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -480,4 +479,3 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
     );
   }
 }
-

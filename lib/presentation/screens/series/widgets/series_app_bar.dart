@@ -73,8 +73,7 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
             onKeyEvent: (node, event) {
               if (!isTv) return KeyEventResult.ignored;
               if (event is KeyDownEvent) {
-                final isEnter =
-                    event.logicalKey == LogicalKeyboardKey.enter ||
+                final isEnter = event.logicalKey == LogicalKeyboardKey.enter ||
                     event.logicalKey == LogicalKeyboardKey.select ||
                     event.logicalKey == LogicalKeyboardKey.numpadEnter ||
                     event.logicalKey == LogicalKeyboardKey.space;
@@ -108,7 +107,7 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
                 excluding: isTv ? !_searchEnabled : false,
                 child: AppSearchField(
                   controller: widget.searchController,
-                  hintAr: 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³Ù„Ø³Ù„...',
+                  hintAr: 'ابحث عن مسلسل...',
                   hintEn: 'Search series...',
                   padding: EdgeInsets.zero,
                   onChanged: widget.onSearch,
@@ -192,4 +191,3 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
     );
   }
 }
-

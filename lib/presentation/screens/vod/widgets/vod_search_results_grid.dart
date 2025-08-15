@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -46,9 +46,8 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
     });
 
     try {
-      final movieDetails = await ref
-          .read(vodViewModelProvider)
-          .getMovieDetails(movie.streamId);
+      final movieDetails =
+          await ref.read(vodViewModelProvider).getMovieDetails(movie.streamId);
 
       if (!mounted) return;
 
@@ -62,7 +61,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
+          content: Text('فشل تحميل تفاصيل الفيلم'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -91,7 +90,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
         final results = snapshot.data!;
         if (results.isEmpty) {
           return const Center(
-            child: Text('Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬', style: TextStyle(color: Colors.white)),
+            child: Text('لا توجد نتائج', style: TextStyle(color: Colors.white)),
           );
         }
 
@@ -108,8 +107,8 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
             crossAxisCount: screenWidth > 900
                 ? 5
                 : screenWidth > 600
-                ? 4
-                : 3,
+                    ? 4
+                    : 3,
             childAspectRatio: 0.7,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -193,4 +192,3 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
     );
   }
 }
-
