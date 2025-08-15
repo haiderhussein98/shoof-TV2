@@ -8,10 +8,22 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |t|
     t.build_configurations.each do |config|
+      # نشر أقل إصدار مدعوم + سويفت + إيقاف بيتكود
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       config.build_settings['SWIFT_VERSION'] = '5.0'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
       config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+
+      # 👇 أهم شيء: لا تعالج تحذيرات كأخطاء، واسمح بالـ non-modular includes
+      config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+
+      # (اختياري) لو أي بود يحقن -Werror، نشيلها
+      other_cflags = config.build_settings['OTHER_CFLAGS'] || ['']
+      other_cflags = [other_cflags] unless other_cflags.is_a?(Array)
+      other_cflags = other_cflags.reject { |f| f.to_s.include?('-Werror=non-modular-include-in-framework-module') }
+      config.build_settings['OTHER_CFLAGS'] = other_cflags
     end
   end
 end
