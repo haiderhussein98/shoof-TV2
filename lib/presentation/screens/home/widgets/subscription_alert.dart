@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -57,7 +57,7 @@ class SubscriptionAlert extends ConsumerWidget {
                       isAndroid: isAndroid,
                       onPressed: _launchWhatsApp,
                       color: Colors.green,
-                      label: 'تجديد الاشتراك',
+                      label: 'ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ',
                     ),
                   ],
                 ),
@@ -108,7 +108,7 @@ class SubscriptionAlert extends ConsumerWidget {
 
   void _launchWhatsApp() async {
     const phone = '+9647718093023';
-    const message = 'أريد تجديد الاشتراك';
+    const message = 'Ø£Ø±ÙŠØ¯ ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ';
     final url = 'https://wa.me/$phone?text=${Uri.encodeComponent(message)}';
     await _openUrl(url);
   }
@@ -215,3 +215,4 @@ class _FocusableIconButtonState extends State<_FocusableIconButton> {
     );
   }
 }
+

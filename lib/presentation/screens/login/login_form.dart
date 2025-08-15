@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
@@ -57,7 +57,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         platformPageRoute(context: context, builder: (_) => const HomeScreen()),
       );
     } else {
-      setState(() => error = "تعذر تسجيل الدخول. تحقق من المعلومات.");
+      setState(() => error = "ØªØ¹Ø°Ø± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª.");
     }
   }
 
@@ -353,3 +353,4 @@ class _TvTextFieldState extends State<_TvTextField> {
     );
   }
 }
+

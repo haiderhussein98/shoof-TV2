@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'
+﻿import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -53,8 +53,8 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     return v.isEmpty ||
         v == 'unknown' ||
         v == 'n/a' ||
-        v == 'بدون عنوان' ||
-        v == 'غير متاح';
+        v == 'Ø¨Ø¯ÙˆÙ† Ø¹Ù†ÙˆØ§Ù†' ||
+        v == 'ØºÙŠØ± Ù…ØªØ§Ø­';
   }
 
   Map<String, dynamic> _toMap(dynamic obj) {
@@ -124,32 +124,32 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     for (final c in candidates) {
       if (!_isUnknownLike(c)) return c!.trim();
     }
-    return 'بدون عنوان';
+    return 'Ø¨Ø¯ÙˆÙ† Ø¹Ù†ÙˆØ§Ù†';
   }
 
   String _safeText(BuildContext context, String? value) {
     final v = (value ?? '').trim();
-    if (v.isEmpty) return 'غير متاح';
+    if (v.isEmpty) return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     if (v.toLowerCase() == 'unknown' || v.toLowerCase() == 'n/a') {
-      return 'غير متاح';
+      return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     }
     return v;
   }
 
   String _formatDateLocalized(BuildContext context, String? dateStr) {
-    if (dateStr == null || dateStr.trim().isEmpty) return 'غير متاح';
+    if (dateStr == null || dateStr.trim().isEmpty) return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     try {
       final date = DateTime.parse(dateStr);
       final locale = Localizations.localeOf(context).toLanguageTag();
       final df = DateFormat('EEEE, dd MMMM yyyy', locale);
       return df.format(date);
     } catch (_) {
-      return 'غير متاح';
+      return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     }
   }
 
   String _formatDuration(BuildContext context, String? durationRaw) {
-    if (durationRaw == null || durationRaw.trim().isEmpty) return 'غير متاح';
+    if (durationRaw == null || durationRaw.trim().isEmpty) return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     final s = durationRaw.trim();
 
     final colon = RegExp(r'^\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*$');
@@ -163,9 +163,9 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
     }
 
     final digits = RegExp(r'\d+').firstMatch(s)?.group(0);
-    if (digits == null) return 'غير متاح';
+    if (digits == null) return 'ØºÙŠØ± Ù…ØªØ§Ø­';
     final n = int.tryParse(digits) ?? 0;
-    if (n <= 0) return 'غير متاح';
+    if (n <= 0) return 'ØºÙŠØ± Ù…ØªØ§Ø­';
 
     final lower = s.toLowerCase();
     final looksSeconds =
@@ -184,14 +184,14 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
   String _arabicDuration(int totalMins) {
     final h = totalMins ~/ 60;
     final mi = totalMins % 60;
-    if (h > 0 && mi > 0) return '$h ساعة $mi دقيقة';
-    if (h > 0) return '$h ساعة';
-    return '$mi دقيقة';
+    if (h > 0 && mi > 0) return '$h Ø³Ø§Ø¹Ø© $mi Ø¯Ù‚ÙŠÙ‚Ø©';
+    if (h > 0) return '$h Ø³Ø§Ø¹Ø©';
+    return '$mi Ø¯Ù‚ÙŠÙ‚Ø©';
   }
 
   String _formatRating(BuildContext context, String? ratingRaw) {
     final s = _safeText(context, ratingRaw);
-    if (s == 'غير متاح') return s;
+    if (s == 'ØºÙŠØ± Ù…ØªØ§Ø­') return s;
     final n = double.tryParse(s);
     if (n != null) {
       return '${n.toStringAsFixed(n.truncateToDouble() == n ? 0 : 1)}/10';
@@ -288,7 +288,7 @@ class _MovieDetailsScreenState extends ConsumerState<MovieDetailsScreen> {
           if (!snapshot.hasData || snapshot.hasError) {
             return const Center(
               child: Text(
-                'فشل تحميل تفاصيل الفيلم',
+                'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…',
                 style: TextStyle(color: Colors.white),
               ),
             );
@@ -431,7 +431,7 @@ class _DesktopDetailsLayout extends StatelessWidget {
         const Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'أفلام مشابهة',
+            'Ø£ÙÙ„Ø§Ù… Ù…Ø´Ø§Ø¨Ù‡Ø©',
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -512,7 +512,7 @@ class _MobileDetailsLayout extends StatelessWidget {
         MovieCastOverview(cast: movie.cast, overview: movie.description),
         const SizedBox(height: 30),
         const Text(
-          'أفلام مشابهة',
+          'Ø£ÙÙ„Ø§Ù… Ù…Ø´Ø§Ø¨Ù‡Ø©',
           style: TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -528,3 +528,4 @@ class _MobileDetailsLayout extends StatelessWidget {
     );
   }
 }
+

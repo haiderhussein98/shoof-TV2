@@ -1,4 +1,4 @@
-class SeriesModel {
+﻿class SeriesModel {
   final int seriesId;
   final String name;
   final String cover;
@@ -54,3 +54,4 @@ class SeriesModel {
     return "$serverUrl/series/$username/$password/$episodeId.mkv";
   }
 }
+

@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/data/models/channel_model.dart';
@@ -29,7 +29,7 @@ class LiveService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل قنوات البث المباشر");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ù‚Ù†ÙˆØ§Øª Ø§Ù„Ø¨Ø« Ø§Ù„Ù…Ø¨Ø§Ø´Ø±");
     }
   }
 
@@ -50,7 +50,7 @@ class LiveService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل أصناف البث المباشر");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø£ØµÙ†Ø§Ù Ø§Ù„Ø¨Ø« Ø§Ù„Ù…Ø¨Ø§Ø´Ø±");
     }
   }
 
@@ -77,7 +77,8 @@ class LiveService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل قنوات التصنيف");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ù‚Ù†ÙˆØ§Øª Ø§Ù„ØªØµÙ†ÙŠÙ");
     }
   }
 }
+

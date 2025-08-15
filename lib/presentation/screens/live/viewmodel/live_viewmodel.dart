@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/providers/live_providers.dart';
 import '../../../../data/models/channel_model.dart';
 import '../state/live_state.dart';
@@ -21,7 +21,7 @@ class LiveViewModel extends StateNotifier<LiveState> {
 
       final allOption = {
         'id': 'all',
-        'name': 'عرض الكل (${allChannels.length})',
+        'name': 'Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„ (${allChannels.length})',
       };
 
       state = state.copyWith(
@@ -104,3 +104,4 @@ final liveViewModelProvider = StateNotifierProvider<LiveViewModel, LiveState>((
 ) {
   return LiveViewModel(ref);
 });
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
@@ -64,3 +64,4 @@ class MovieVideoView extends StatelessWidget {
     );
   }
 }
+

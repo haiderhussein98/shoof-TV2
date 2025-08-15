@@ -1,4 +1,4 @@
-class MovieModel {
+﻿class MovieModel {
   final int streamId;
   final String name;
   final String streamType;
@@ -70,3 +70,4 @@ class MovieModel {
     );
   }
 }
+

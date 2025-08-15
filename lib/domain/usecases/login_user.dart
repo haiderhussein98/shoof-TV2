@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/domain/providers/core_providers.dart';
@@ -57,3 +57,4 @@ Future<bool> loginUser({
     return false;
   }
 }
+

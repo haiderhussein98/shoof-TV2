@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/domain/providers/vod_providers.dart';
 import '../../../../data/models/movie_model.dart';
@@ -32,3 +32,4 @@ class VodViewModel extends ChangeNotifier {
         .getMoviesByCategory(categoryId, offset: 0, limit: 20);
   }
 }
+

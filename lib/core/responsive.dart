@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 const double kXSMax = 360;
 const double kSMMax = 600;
@@ -134,3 +134,4 @@ class CenteredMaxWidth extends StatelessWidget {
     );
   }
 }
+

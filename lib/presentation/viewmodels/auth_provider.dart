@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shoof_tv/domain/providers/core_providers.dart';
 import 'package:shoof_tv/domain/providers/user_providers.dart';
@@ -88,8 +88,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<bool>> {
     ref!.read(subscriptionEndProvider.notifier).state = DateTime.now().add(
       const Duration(days: 90),
     );
-    ref!.refresh(subscriptionTypeProvider.notifier).state = "غير معروف";
+    ref!.refresh(subscriptionTypeProvider.notifier).state = "ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ";
 
     state = const AsyncValue.data(false);
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,8 +69,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final message = difference.inDays >= 1
-        ? "باقي ${difference.inDays} يوم على انتهاء الاشتراك"
-        : "باقي ${difference.inHours} ساعة على انتهاء الاشتراك";
+        ? "Ø¨Ø§Ù‚ÙŠ ${difference.inDays} ÙŠÙˆÙ… Ø¹Ù„Ù‰ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ"
+        : "Ø¨Ø§Ù‚ÙŠ ${difference.inHours} Ø³Ø§Ø¹Ø© Ø¹Ù„Ù‰ Ø§Ù†ØªÙ‡Ø§Ø¡ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ";
 
     ref.read(timeLeftMessageProvider.notifier).state = message;
     ref.read(showSubscriptionAlertProvider.notifier).state = true;
@@ -157,3 +157,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 }
+

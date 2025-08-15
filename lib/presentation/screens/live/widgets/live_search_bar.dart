@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/presentation/screens/live/viewmodel/live_viewmodel.dart';
@@ -22,7 +22,7 @@ class LiveSearchBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isRtl = _isRTL(context);
-    final hint = isRtl ? 'ابحث عن القناة...' : 'Search channels...';
+    final hint = isRtl ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù‚Ù†Ø§Ø©...' : 'Search channels...';
 
     Future<void> clearAndReload() async {
       controller.clear();
@@ -116,3 +116,4 @@ class LiveSearchBar extends ConsumerWidget {
     );
   }
 }
+

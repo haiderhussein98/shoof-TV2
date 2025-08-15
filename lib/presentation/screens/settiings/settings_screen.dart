@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+﻿import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,7 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.color_lens, color: Colors.white),
                     title: const Text(
-                      "الوضع الداكن",
+                      "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
                       style: TextStyle(color: Colors.white),
                     ),
                     trailing: PlatformSwitch(
@@ -106,7 +106,7 @@ class SettingsScreen extends ConsumerWidget {
                       color: Colors.white,
                     ),
                     title: const Text(
-                      "الوضع الداكن",
+                      "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
                       style: TextStyle(color: Colors.white),
                     ),
                     trailing: PlatformSwitch(value: true, onChanged: (_) {}),
@@ -177,3 +177,4 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
+

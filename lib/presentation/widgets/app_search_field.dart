@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+﻿import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -19,7 +19,7 @@ class AppSearchField extends StatelessWidget {
     required this.controller,
     this.onChanged,
     this.onSubmitted,
-    this.hintAr = 'ابحث...',
+    this.hintAr = 'Ø§Ø¨Ø­Ø«...',
     this.hintEn = 'Search...',
     this.padding = const EdgeInsets.all(12),
     this.focusNode,
@@ -154,3 +154,4 @@ class AppSearchField extends StatelessWidget {
     );
   }
 }
+

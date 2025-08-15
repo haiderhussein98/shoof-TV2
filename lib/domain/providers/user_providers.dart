@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/presentation/viewmodels/auth_provider.dart';
 import '../../data/services/user_service.dart';
 import 'core_providers.dart';
@@ -34,13 +34,13 @@ final userInfoInitializerProvider = FutureProvider<void>((ref) async {
       final diffDays = expDate.difference(createdAt).inDays;
 
       if (diffDays <= 31) {
-        ref.read(subscriptionTypeProvider.notifier).state = 'تجريبي';
+        ref.read(subscriptionTypeProvider.notifier).state = 'ØªØ¬Ø±ÙŠØ¨ÙŠ';
       } else if (diffDays <= 93) {
-        ref.read(subscriptionTypeProvider.notifier).state = '3 أشهر';
+        ref.read(subscriptionTypeProvider.notifier).state = '3 Ø£Ø´Ù‡Ø±';
       } else if (diffDays <= 186) {
-        ref.read(subscriptionTypeProvider.notifier).state = '6 أشهر';
+        ref.read(subscriptionTypeProvider.notifier).state = '6 Ø£Ø´Ù‡Ø±';
       } else {
-        ref.read(subscriptionTypeProvider.notifier).state = 'سنة';
+        ref.read(subscriptionTypeProvider.notifier).state = 'Ø³Ù†Ø©';
       }
     } else {}
   } catch (e) {
@@ -48,3 +48,4 @@ final userInfoInitializerProvider = FutureProvider<void>((ref) async {
     rethrow;
   }
 });
+

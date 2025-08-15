@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+﻿import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +68,7 @@ class UserInfoCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      isActive ? 'الاشتراك نشط' : 'الاشتراك منتهي',
+                      isActive ? 'Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ù†Ø´Ø·' : 'Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ù…Ù†ØªÙ‡ÙŠ',
                       style: TextStyle(
                         color: isActive ? Colors.green : Colors.red,
                         fontSize: isTablet ? 16 : 14,
@@ -81,7 +81,7 @@ class UserInfoCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'نوع الاشتراك: $subscriptionType',
+                  'Ù†ÙˆØ¹ Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ: $subscriptionType',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: isTablet ? 15 : 13,
@@ -95,3 +95,4 @@ class UserInfoCard extends ConsumerWidget {
     );
   }
 }
+

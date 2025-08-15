@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
@@ -103,7 +103,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen>
                 if (snapshot.hasError) {
                   return const Center(
                     child: Text(
-                      'فشل تحميل التصنيفات',
+                      'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª',
                       style: TextStyle(color: Colors.white),
                     ),
                   );
@@ -209,7 +209,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
         if (snap.hasError) {
           return const Center(
             child: Text(
-              'حدث خطأ أثناء البحث',
+              'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø¨Ø­Ø«',
               style: TextStyle(color: Colors.white),
             ),
           );
@@ -218,7 +218,7 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
         if (results.isEmpty) {
           return const Center(
             child: Text(
-              'لا توجد نتائج',
+              'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬',
               style: TextStyle(color: Colors.white70),
             ),
           );
@@ -331,3 +331,4 @@ class _SeriesSearchResultsGridState extends State<_SeriesSearchResultsGrid> {
     );
   }
 }
+

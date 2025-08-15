@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'series_category_section.dart';
 
 class SeriesCategoryList extends StatelessWidget {
@@ -30,3 +30,4 @@ class SeriesCategoryList extends StatelessWidget {
     );
   }
 }
+

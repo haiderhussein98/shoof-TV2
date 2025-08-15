@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class UserService {
@@ -28,10 +28,11 @@ class UserService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final userInfo = data['user_info'];
-      if (userInfo == null) throw Exception("الحساب منتهي أو غير صالح");
+      if (userInfo == null) throw Exception("Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ù†ØªÙ‡ÙŠ Ø£Ùˆ ØºÙŠØ± ØµØ§Ù„Ø­");
       return userInfo;
     } else {
-      throw Exception("فشل تحميل بيانات المستخدم");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…");
     }
   }
 }
+

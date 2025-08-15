@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 
 class RelatedMoviesList extends StatelessWidget {
   final Future<List<MovieModel>> future;
@@ -30,7 +30,7 @@ class RelatedMoviesList extends StatelessWidget {
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const Text(
-            'لا توجد أفلام مشابهة حالياً',
+            'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙÙ„Ø§Ù… Ù…Ø´Ø§Ø¨Ù‡Ø© Ø­Ø§Ù„ÙŠØ§Ù‹',
             style: TextStyle(color: Colors.white70),
           );
         }
@@ -100,3 +100,4 @@ class RelatedMoviesList extends StatelessWidget {
     );
   }
 }
+

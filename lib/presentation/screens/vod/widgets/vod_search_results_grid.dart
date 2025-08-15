@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_tv/data/models/movie_model.dart.dart';
+import 'package:shoof_tv/data/models/movie_model.dart';
 import 'package:shoof_tv/presentation/screens/vod/viewmodel/vod_viewmodel.dart';
 import '../movie_details_screen.dart';
 
@@ -62,7 +62,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('فشل تحميل تفاصيل الفيلم'),
+          content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -91,7 +91,7 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
         final results = snapshot.data!;
         if (results.isEmpty) {
           return const Center(
-            child: Text('لا توجد نتائج', style: TextStyle(color: Colors.white)),
+            child: Text('Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬', style: TextStyle(color: Colors.white)),
           );
         }
 
@@ -193,3 +193,4 @@ class _VodSearchResultsGridState extends ConsumerState<VodSearchResultsGrid> {
     );
   }
 }
+

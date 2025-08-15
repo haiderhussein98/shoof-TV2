@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -472,7 +472,7 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
           color = Colors.orange;
         }
         return Tooltip(
-          message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
+          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
           child: Icon(icon, color: color, size: 26),
         );
       },
@@ -592,7 +592,7 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
           if (_hasError)
             const Center(
               child: Text(
-                "انقطع الاتصال بالمشغّل... تتم إعادة المحاولة",
+                "Ø§Ù†Ù‚Ø·Ø¹ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ù…Ø´ØºÙ‘Ù„... ØªØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©",
                 style: TextStyle(color: Colors.redAccent, fontSize: 16),
               ),
             ),
@@ -601,3 +601,4 @@ class _UniversalPlayerDesktopState extends State<UniversalPlayerDesktop> {
     );
   }
 }
+

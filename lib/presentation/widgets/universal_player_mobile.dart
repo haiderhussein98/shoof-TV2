@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -123,7 +123,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // إخفاء شريط الحالة نهائياً أثناء تشغيل المشغّل
+    // Ø¥Ø®ÙØ§Ø¡ Ø´Ø±ÙŠØ· Ø§Ù„Ø­Ø§Ù„Ø© Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ø£Ø«Ù†Ø§Ø¡ ØªØ´ØºÙŠÙ„ Ø§Ù„Ù…Ø´ØºÙ‘Ù„
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     _createController(initialForLive: _isLive);
@@ -159,7 +159,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     });
   }
 
-  // ============================ خيارات LIVE & VOD ============================
+  // ============================ Ø®ÙŠØ§Ø±Ø§Øª LIVE & VOD ============================
   void _createController({required bool initialForLive}) {
     final source = initialForLive ? _liveStreamUrl : (widget.url ?? '');
 
@@ -557,7 +557,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   }
 
   void _seekBy(int seconds) async {
-    if (_isLive) return; // منع السيك نهائيًا في الحي
+    if (_isLive) return; // Ù…Ù†Ø¹ Ø§Ù„Ø³ÙŠÙƒ Ù†Ù‡Ø§Ø¦ÙŠÙ‹Ø§ ÙÙŠ Ø§Ù„Ø­ÙŠ
     if (_isDisposed) return;
     try {
       final current = await _vlc.getPosition();
@@ -590,14 +590,14 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
           color = Colors.orange;
         }
         return Tooltip(
-          message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
+          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
           child: Icon(icon, color: color, size: 22),
         );
       },
     );
   }
 
-  // ===== مؤشر شبكة متجاوب (نفس مقياس اللوغو) =====
+  // ===== Ù…Ø¤Ø´Ø± Ø´Ø¨ÙƒØ© Ù…ØªØ¬Ø§ÙˆØ¨ (Ù†ÙØ³ Ù…Ù‚ÙŠØ§Ø³ Ø§Ù„Ù„ÙˆØºÙˆ) =====
   Widget _signalIndicatorSized(double size) {
     return ValueListenableBuilder<int>(
       valueListenable: _latencyNotifier,
@@ -613,7 +613,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
           color = Colors.orange;
         }
         return Tooltip(
-          message: latency == -1 ? 'غير متصل' : 'Ping: ${latency}ms',
+          message: latency == -1 ? 'ØºÙŠØ± Ù…ØªØµÙ„' : 'Ping: ${latency}ms',
           child: Icon(icon, color: color, size: size),
         );
       },
@@ -624,7 +624,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     if (_orientationRestored) return;
     _orientationRestored = true;
 
-    // إعادة إظهار أشرطة النظام عند الخروج
+    // Ø¥Ø¹Ø§Ø¯Ø© Ø¥Ø¸Ù‡Ø§Ø± Ø£Ø´Ø±Ø·Ø© Ø§Ù„Ù†Ø¸Ø§Ù… Ø¹Ù†Ø¯ Ø§Ù„Ø®Ø±ÙˆØ¬
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     if (_isTv) {
@@ -707,11 +707,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
     final ar = _lockedAspectRatio ?? (screen.width / screen.height);
-    final videoW = 1000.0; // عرض وهمي لاحتساب الحجم داخل FittedBox
+    final videoW = 1000.0; // Ø¹Ø±Ø¶ ÙˆÙ‡Ù…ÙŠ Ù„Ø§Ø­ØªØ³Ø§Ø¨ Ø§Ù„Ø­Ø¬Ù… Ø¯Ø§Ø®Ù„ FittedBox
     final videoH = videoW / ar;
 
     return PlatformScaffold(
-      // نجعل الخلفية داكنة على كل الأنظمة
+      // Ù†Ø¬Ø¹Ù„ Ø§Ù„Ø®Ù„ÙÙŠØ© Ø¯Ø§ÙƒÙ†Ø© Ø¹Ù„Ù‰ ÙƒÙ„ Ø§Ù„Ø£Ù†Ø¸Ù…Ø©
       material: (_, __) => MaterialScaffoldData(backgroundColor: Colors.black),
       cupertino: (_, __) =>
           CupertinoPageScaffoldData(backgroundColor: Colors.black),
@@ -751,7 +751,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
           onTap: _toggleControls,
           child: Stack(
             children: [
-              // الفيديو يملأ الشاشة بدون حواف وبقصّ آمن
+              // Ø§Ù„ÙÙŠØ¯ÙŠÙˆ ÙŠÙ…Ù„Ø£ Ø§Ù„Ø´Ø§Ø´Ø© Ø¨Ø¯ÙˆÙ† Ø­ÙˆØ§Ù ÙˆØ¨Ù‚ØµÙ‘ Ø¢Ù…Ù†
               Positioned.fill(
                 child: ClipRect(
                   child: FittedBox(
@@ -772,7 +772,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                 ),
               ),
 
-              // ===== مؤشّر الشبكة أعلى اليمين (LIVE فقط) =====
+              // ===== Ù…Ø¤Ø´Ù‘Ø± Ø§Ù„Ø´Ø¨ÙƒØ© Ø£Ø¹Ù„Ù‰ Ø§Ù„ÙŠÙ…ÙŠÙ† (LIVE ÙÙ‚Ø·) =====
               if (_isLive)
                 Positioned(
                   right: MediaQuery.of(context).size.width * 0.1,
@@ -802,7 +802,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // طبقة تحميل VOD فقط
+              // Ø·Ø¨Ù‚Ø© ØªØ­Ù…ÙŠÙ„ VOD ÙÙ‚Ø·
               if (_isVod)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -828,7 +828,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // شريط أعلى (زر رجوع + تدوير)
+              // Ø´Ø±ÙŠØ· Ø£Ø¹Ù„Ù‰ (Ø²Ø± Ø±Ø¬ÙˆØ¹ + ØªØ¯ÙˆÙŠØ±)
               if (_showControls)
                 Positioned(
                   left: 12,
@@ -866,7 +866,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // أسفل الشاشة: VOD = سلايدر | LIVE = شكلي + الوقت
+              // Ø£Ø³ÙÙ„ Ø§Ù„Ø´Ø§Ø´Ø©: VOD = Ø³Ù„Ø§ÙŠØ¯Ø± | LIVE = Ø´ÙƒÙ„ÙŠ + Ø§Ù„ÙˆÙ‚Øª
               if (_showControls)
                 Positioned(
                   bottom: 12,
@@ -989,7 +989,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   ),
                 ),
 
-              // اللوغو ثابت أسفل اليمين — متجاوب
+              // Ø§Ù„Ù„ÙˆØºÙˆ Ø«Ø§Ø¨Øª Ø£Ø³ÙÙ„ Ø§Ù„ÙŠÙ…ÙŠÙ† â€” Ù…ØªØ¬Ø§ÙˆØ¨
               if (widget.logo != null)
                 Positioned(
                   right: MediaQuery.of(context).size.width * 0.05,
@@ -1017,7 +1017,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
               if (_isLive && _hasError)
                 const Center(
                   child: Text(
-                    "انقطع الاتصال بالبث... تتم إعادة المحاولة",
+                    "Ø§Ù†Ù‚Ø·Ø¹ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¨Ø«... ØªØªÙ… Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø©",
                     style: TextStyle(color: Colors.redAccent, fontSize: 16),
                   ),
                 ),
@@ -1028,3 +1028,4 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -44,7 +44,7 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('فشل تحميل تفاصيل الفيلم'),
+                content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
                 backgroundColor: Colors.redAccent,
               ),
             );
@@ -83,3 +83,4 @@ class _MovieItemWidgetState extends ConsumerState<MovieItemWidget> {
     );
   }
 }
+

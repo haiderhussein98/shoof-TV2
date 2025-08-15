@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+﻿import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -29,14 +29,14 @@ class SubscriptionInfoCard extends StatelessWidget {
             context,
             materialIcon: Icons.calendar_today,
             cupertinoIcon: CupertinoIcons.calendar,
-            title: 'تاريخ البداية',
+            title: 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¨Ø¯Ø§ÙŠØ©',
             value: startDate,
           ),
           _buildBox(
             context,
             materialIcon: Icons.event,
             cupertinoIcon: CupertinoIcons.calendar,
-            title: 'تاريخ الانتهاء',
+            title: 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø§Ù†ØªÙ‡Ø§Ø¡',
             value: endDate,
           ),
         ],
@@ -74,3 +74,4 @@ class SubscriptionInfoCard extends StatelessWidget {
     );
   }
 }
+

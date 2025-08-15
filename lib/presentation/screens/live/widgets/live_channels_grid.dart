@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/data/models/channel_model.dart';
 import 'package:shoof_tv/presentation/screens/live/widgets/channel_tile.dart';
@@ -81,7 +81,7 @@ class LiveChannelsGrid extends StatelessWidget {
               if (filtered.isEmpty) {
                 return const Center(
                   child: Text(
-                    'لم يتم العثور على قنوات.',
+                    'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù‚Ù†ÙˆØ§Øª.',
                     style: TextStyle(color: Colors.white70),
                   ),
                 );
@@ -113,3 +113,4 @@ class LiveChannelsGrid extends StatelessWidget {
     );
   }
 }
+

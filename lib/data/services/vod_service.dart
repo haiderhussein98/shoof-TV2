@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/data/models/movie_model.dart';
 
@@ -37,7 +37,7 @@ class VodService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل الأفلام.");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙÙ„Ø§Ù….");
     }
   }
 
@@ -51,7 +51,7 @@ class VodService {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       final info = json['info'];
-      if (info == null) throw Exception("البيانات غير متوفرة");
+      if (info == null) throw Exception("Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ØºÙŠØ± Ù…ØªÙˆÙØ±Ø©");
 
       final name = info['name'] ?? 'Unknown';
       final image = info['movie_image'] ?? '';
@@ -98,7 +98,7 @@ class VodService {
 
       return MovieModel.fromJson(movieMap, serverUrl, username, password);
     } else {
-      throw Exception("فشل تحميل بيانات الفيلم");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ÙÙŠÙ„Ù…");
     }
   }
 
@@ -124,7 +124,7 @@ class VodService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل أفلام التصنيف");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø£ÙÙ„Ø§Ù… Ø§Ù„ØªØµÙ†ÙŠÙ");
     }
   }
 
@@ -145,7 +145,7 @@ class VodService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل تصنيفات VOD");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªØµÙ†ÙŠÙØ§Øª VOD");
     }
   }
 
@@ -171,7 +171,8 @@ class VodService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل الأفلام المشابهة");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙÙ„Ø§Ù… Ø§Ù„Ù…Ø´Ø§Ø¨Ù‡Ø©");
     }
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'
+﻿import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -119,7 +119,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
         Directionality.of(context) == TextDirection.rtl;
   }
 
-  // TV-only: Android + تنقّل اتجاهي
+  // TV-only: Android + ØªÙ†Ù‚Ù‘Ù„ Ø§ØªØ¬Ø§Ù‡ÙŠ
   bool _isAndroidTvLike(BuildContext context) {
     final isAndroid = defaultTargetPlatform == TargetPlatform.android;
     final nav = MediaQuery.of(context).navigationMode;
@@ -173,7 +173,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
               child: Directionality(
                 textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
                 child: Focus(
-                  canRequestFocus: isTv, // تركيز فقط على TV
+                  canRequestFocus: isTv, // ØªØ±ÙƒÙŠØ² ÙÙ‚Ø· Ø¹Ù„Ù‰ TV
                   skipTraversal: !isTv,
                   onKeyEvent: (node, event) {
                     if (!isTv) return KeyEventResult.ignored;
@@ -220,7 +220,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
                         onChanged: (val) => _searchQuery.value = val,
                         decoration: InputDecoration(
                           hintText: isRtl
-                              ? 'ابحث عن مسلسل...'
+                              ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³Ù„Ø³Ù„...'
                               : 'Search series...',
                           hintStyle: const TextStyle(color: Colors.white54),
                           filled: true,
@@ -289,7 +289,7 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
 
                   return FocusTraversalGroup(
                     policy: ReadingOrderTraversalPolicy(),
-                    descendantsAreFocusable: isTv, // تعطيل التركيز إن لم تكن TV
+                    descendantsAreFocusable: isTv, // ØªØ¹Ø·ÙŠÙ„ Ø§Ù„ØªØ±ÙƒÙŠØ² Ø¥Ù† Ù„Ù… ØªÙƒÙ† TV
                     child: GridView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -480,3 +480,4 @@ class _CategorySeriesScreenState extends ConsumerState<CategorySeriesScreen>
     );
   }
 }
+

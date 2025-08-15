@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -119,7 +119,7 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
           if (snapshot.hasError) {
             return const Center(
               child: Text(
-                'حدث خطأ أثناء تحميل تفاصيل المسلسل',
+                'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„',
                 style: TextStyle(color: Colors.redAccent),
               ),
             );
@@ -128,7 +128,7 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                'لا توجد حلقات متاحة لهذا المسلسل',
+                'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø­Ù„Ù‚Ø§Øª Ù…ØªØ§Ø­Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³Ù„Ø³Ù„',
                 style: TextStyle(color: Colors.white),
               ),
             );
@@ -252,3 +252,4 @@ class _SeriesDetailsScreenState extends ConsumerState<SeriesDetailsScreen> {
     );
   }
 }
+

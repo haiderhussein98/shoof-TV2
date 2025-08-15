@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/screens/vod/widgets/category_section.dart';
 
@@ -55,3 +55,4 @@ class _VodCategoryListState extends State<VodCategoryList> {
     );
   }
 }
+

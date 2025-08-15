@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/vod_service.dart';
 import 'core_providers.dart';
 
@@ -9,3 +9,4 @@ final vodServiceProvider = Provider<VodService>((ref) {
     ref.watch(passwordProvider),
   );
 });
+

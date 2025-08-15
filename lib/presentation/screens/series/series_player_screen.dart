@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'
+﻿import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:shoof_tv/presentation/widgets/universal_player_desktop.dart';
@@ -57,3 +57,4 @@ class SeriesPlayerScreen extends StatelessWidget {
         '$episodeId.$containerExtension';
   }
 }
+

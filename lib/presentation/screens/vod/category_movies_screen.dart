@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -170,7 +170,7 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
                   if (filtered.isEmpty && !_isLoading) {
                     return const Center(
                       child: Text(
-                        'لم يتم العثور على أفلام.',
+                        'Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙÙ„Ø§Ù….',
                         style: TextStyle(color: Colors.white70),
                       ),
                     );
@@ -306,8 +306,8 @@ class _CategoryMoviesScreenState extends ConsumerState<CategoryMoviesScreen>
   }
 }
 
-/// حقل البحث بنمط TV: يمنع إدخال الريموت إلا على أندرويد فقط.
-/// على الديسكتوب يبقى الحقل قابلاً للكتابة مباشرة بالكيبورد.
+/// Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø­Ø« Ø¨Ù†Ù…Ø· TV: ÙŠÙ…Ù†Ø¹ Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø±ÙŠÙ…ÙˆØª Ø¥Ù„Ø§ Ø¹Ù„Ù‰ Ø£Ù†Ø¯Ø±ÙˆÙŠØ¯ ÙÙ‚Ø·.
+/// Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙŠØ³ÙƒØªÙˆØ¨ ÙŠØ¨Ù‚Ù‰ Ø§Ù„Ø­Ù‚Ù„ Ù‚Ø§Ø¨Ù„Ø§Ù‹ Ù„Ù„ÙƒØªØ§Ø¨Ø© Ù…Ø¨Ø§Ø´Ø±Ø© Ø¨Ø§Ù„ÙƒÙŠØ¨ÙˆØ±Ø¯.
 class _SearchField extends StatefulWidget {
   final TextEditingController controller;
   final ValueChanged<String> onSubmit;
@@ -399,7 +399,7 @@ class _SearchFieldState extends State<_SearchField> {
             cursorColor: Colors.white70,
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
-              hintText: 'ابحث عن فيلم...',
+              hintText: 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙÙŠÙ„Ù…...',
               hintStyle: const TextStyle(color: Colors.white54),
               filled: true,
               fillColor: Colors.grey[850],
@@ -424,3 +424,4 @@ class _SearchFieldState extends State<_SearchField> {
     );
   }
 }
+

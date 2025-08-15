@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
@@ -239,7 +239,7 @@ class _VodSearchFieldState extends State<_VodSearchField> {
         cursorColor: Colors.white70,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: widget.isRtl ? 'ابحث عن فيلم...' : 'Search movies...',
+          hintText: widget.isRtl ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙÙŠÙ„Ù…...' : 'Search movies...',
           hintStyle: const TextStyle(color: Colors.white60),
           filled: true,
           fillColor: const Color(0xFF1E1F25),
@@ -276,3 +276,4 @@ class _VodSearchFieldState extends State<_VodSearchField> {
     );
   }
 }
+

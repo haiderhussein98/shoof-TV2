@@ -1,4 +1,4 @@
-import '../../../../data/models/channel_model.dart';
+﻿import '../../../../data/models/channel_model.dart';
 
 class LiveState {
   final List<Map<String, String>> categories;
@@ -54,3 +54,4 @@ class LiveState {
     );
   }
 }
+

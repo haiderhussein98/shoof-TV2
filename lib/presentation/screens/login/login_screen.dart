@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/presentation/screens/login/login_form.dart';
 
@@ -47,3 +47,4 @@ class LoginScreen extends StatelessWidget {
     );
   }
 }
+

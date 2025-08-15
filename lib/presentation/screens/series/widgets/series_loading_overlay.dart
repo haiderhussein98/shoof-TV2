@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
@@ -36,7 +36,7 @@ class SeriesLoadingOverlay extends StatelessWidget {
                     const PlatformCircularProgressIndicator(),
                     const SizedBox(height: 12),
                     const Text(
-                      'جاري التحميل...',
+                      'Ø¬Ø§Ø±ÙŠ Ø§Ù„ØªØ­Ù…ÙŠÙ„...',
                       style: TextStyle(color: Colors.white70),
                     ),
                   ],
@@ -49,3 +49,4 @@ class SeriesLoadingOverlay extends StatelessWidget {
     );
   }
 }
+

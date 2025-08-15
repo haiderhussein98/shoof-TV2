@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/data/models/series_model.dart';
@@ -43,7 +43,7 @@ class SeriesService {
 
       return grouped;
     } else {
-      throw Exception("فشل تحميل بيانات الحلقات");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ù„Ù‚Ø§Øª");
     }
   }
 
@@ -65,7 +65,7 @@ class SeriesService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل المسلسلات");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø³Ù„Ø³Ù„Ø§Øª");
     }
   }
 
@@ -91,7 +91,7 @@ class SeriesService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل مسلسلات التصنيف");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ù…Ø³Ù„Ø³Ù„Ø§Øª Ø§Ù„ØªØµÙ†ÙŠÙ");
     }
   }
 
@@ -112,7 +112,8 @@ class SeriesService {
           )
           .toList();
     } else {
-      throw Exception("فشل تحميل تصنيفات المسلسلات");
+      throw Exception("ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªØµÙ†ÙŠÙØ§Øª Ø§Ù„Ù…Ø³Ù„Ø³Ù„Ø§Øª");
     }
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
@@ -108,7 +108,7 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
                 excluding: isTv ? !_searchEnabled : false,
                 child: AppSearchField(
                   controller: widget.searchController,
-                  hintAr: 'ابحث عن مسلسل...',
+                  hintAr: 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³Ù„Ø³Ù„...',
                   hintEn: 'Search series...',
                   padding: EdgeInsets.zero,
                   onChanged: widget.onSearch,
@@ -192,3 +192,4 @@ class _SeriesAppBarState extends State<SeriesAppBar> {
     );
   }
 }
+

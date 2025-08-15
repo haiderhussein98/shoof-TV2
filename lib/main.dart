@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +25,7 @@ Future<bool> _isAndroidTV() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  PaintingBinding.instance.imageCache.maximumSize = 100; // عدد الصور
+  PaintingBinding.instance.imageCache.maximumSize = 100; // Ø¹Ø¯Ø¯ Ø§Ù„ØµÙˆØ±
   PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20; // ~60MB
 
   final bool isDesktop =
@@ -102,3 +102,4 @@ class _ShoofIPTVAppState extends State<ShoofIPTVApp>
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
@@ -96,7 +96,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('فشل تحميل تفاصيل الفيلم'),
+          content: Text('ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙÙŠÙ„Ù…'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -398,7 +398,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
                     ),
                     const SizedBox(width: 6),
                     const Text(
-                      "مشاهدة الكل",
+                      "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„ÙƒÙ„",
                       style: TextStyle(
                         color: Colors.redAccent,
                         fontSize: 13,
@@ -415,3 +415,4 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 }
+

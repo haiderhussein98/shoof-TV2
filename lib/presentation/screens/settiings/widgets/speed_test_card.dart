@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -175,12 +175,12 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
       if (!mounted) return;
       setState(() {
         _bps = best;
-        if (best == 0) _error = 'تعذّر القياس. تحقق من الشبكة.';
+        if (best == 0) _error = 'ØªØ¹Ø°Ù‘Ø± Ø§Ù„Ù‚ÙŠØ§Ø³. ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø´Ø¨ÙƒØ©.';
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'تعذّر الاختبار';
+        _error = 'ØªØ¹Ø°Ù‘Ø± Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±';
       });
     } finally {
       if (mounted) {
@@ -263,7 +263,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                     SizedBox(
                       width: narrow ? double.infinity : null,
                       child: Text(
-                        'اختبار سرعة الإنترنت (تنزيل)',
+                        'Ø§Ø®ØªØ¨Ø§Ø± Ø³Ø±Ø¹Ø© Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª (ØªÙ†Ø²ÙŠÙ„)',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: narrow ? TextAlign.start : TextAlign.left,
@@ -284,7 +284,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                           children: const [
                             Icon(Icons.refresh, size: 18),
                             SizedBox(width: 6),
-                            Text('إعادة الاختبار'),
+                            Text('Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±'),
                           ],
                         ),
                         material: (_, __) => MaterialElevatedButtonData(
@@ -348,7 +348,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'جارِ الاختبار...',
+                                    'Ø¬Ø§Ø±Ù Ø§Ù„Ø§Ø®ØªØ¨Ø§Ø±...',
                                     style: TextStyle(
                                       color: Colors.white70,
                                       fontSize: sizes.label,
@@ -428,7 +428,7 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
                 SizedBox(height: narrow ? 8 : 10),
 
                 Text(
-                  'القيمة تقديرية لأقصى سرعة تنزيل خلال ${_testDuration.inSeconds} ثوانٍ. Ping = زمن الاستجابة، Jitter = تذبذب التأخير.',
+                  'Ø§Ù„Ù‚ÙŠÙ…Ø© ØªÙ‚Ø¯ÙŠØ±ÙŠØ© Ù„Ø£Ù‚ØµÙ‰ Ø³Ø±Ø¹Ø© ØªÙ†Ø²ÙŠÙ„ Ø®Ù„Ø§Ù„ ${_testDuration.inSeconds} Ø«ÙˆØ§Ù†Ù. Ping = Ø²Ù…Ù† Ø§Ù„Ø§Ø³ØªØ¬Ø§Ø¨Ø©ØŒ Jitter = ØªØ°Ø¨Ø°Ø¨ Ø§Ù„ØªØ£Ø®ÙŠØ±.',
                   style: TextStyle(
                     color: Colors.white38,
                     fontSize: sizes.label,
@@ -443,3 +443,4 @@ class _SpeedTestCardState extends State<SpeedTestCard> {
     );
   }
 }
+

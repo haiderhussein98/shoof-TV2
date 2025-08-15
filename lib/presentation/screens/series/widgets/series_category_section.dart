@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
@@ -54,7 +54,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
     super.dispose();
   }
 
-  // TV-only: Android + تنقّل اتجاهي
+  // TV-only: Android + ØªÙ†Ù‚Ù‘Ù„ Ø§ØªØ¬Ø§Ù‡ÙŠ
   bool _isAndroidTvLike(BuildContext context) {
     final isAndroid = defaultTargetPlatform == TargetPlatform.android;
     final nav = MediaQuery.of(context).navigationMode;
@@ -127,7 +127,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // العنوان + زر مشاهدة الكل
+          // Ø§Ù„Ø¹Ù†ÙˆØ§Ù† + Ø²Ø± Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„ÙƒÙ„
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
@@ -146,7 +146,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                 ),
                 Focus(
                   focusNode: _seeAllFocus,
-                  canRequestFocus: isTv, // تركيز فقط على TV
+                  canRequestFocus: isTv, // ØªØ±ÙƒÙŠØ² ÙÙ‚Ø· Ø¹Ù„Ù‰ TV
                   onFocusChange: (f) => setState(() => _seeAllHasFocus = f),
                   onKeyEvent: (node, event) {
                     if (!isTv) return KeyEventResult.ignored;
@@ -192,7 +192,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                           ),
                           const SizedBox(width: 6),
                           const Text(
-                            "مشاهدة الكل",
+                            "Ù…Ø´Ø§Ù‡Ø¯Ø© Ø§Ù„ÙƒÙ„",
                             style: TextStyle(
                               color: Colors.redAccent,
                               fontSize: 13,
@@ -208,7 +208,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
             ),
           ),
 
-          // القائمة الأفقية
+          // Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø£ÙÙ‚ÙŠØ©
           SizedBox(
             height: w > 600 ? 230 : 190,
             child: FutureBuilder<List<SeriesModel>>(
@@ -242,7 +242,7 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
                 }
 
                 return FocusTraversalGroup(
-                  // تعطيل التركيز للذريّات على غير TV
+                  // ØªØ¹Ø·ÙŠÙ„ Ø§Ù„ØªØ±ÙƒÙŠØ² Ù„Ù„Ø°Ø±ÙŠÙ‘Ø§Øª Ø¹Ù„Ù‰ ØºÙŠØ± TV
                   descendantsAreFocusable: isTv,
                   policy: ReadingOrderTraversalPolicy(),
                   child: ListView.separated(
@@ -373,3 +373,4 @@ class _SeriesCategorySectionState extends ConsumerState<SeriesCategorySection> {
     );
   }
 }
+
