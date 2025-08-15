@@ -86,7 +86,7 @@ workflows:
         script: |
           set -e
           cd ios
-          rm -rf Pods Podfile.lock
+          rm -rf Pods Podfile.lock ~/Library/Caches/CocoaPods
           pod repo update
           pod install --verbose
           cd ..
