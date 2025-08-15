@@ -1,3 +1,32 @@
+workflows:
+  ios_unsigned:
+    name: iOS Unsigned IPA (shoof_tv)
+    max_build_duration: 60
+
+    environment:
+      flutter: stable
+      xcode: 15.4
+      cocoapods: default
+      vars:
+        APP_NAME: "Shoof TV"
+        BUNDLE_ID: "com.shoof.tv"
+        IOS_MIN_VERSION: "13.0"
+
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+        - ios/Pods
+        - ~/Library/Caches/CocoaPods
+
+    scripts:
+      - name: Flutter clean & get
+        script: |
+          set -e
+          flutter --version
+          flutter clean
+          flutter pub get
+          flutter precache --ios
+
       - name: Ensure Info.plist & Podfile (force iOS 13)
         script: |
           set -e
@@ -53,3 +82,56 @@
           "  end" \
           "end" \
           > ios/Podfile
+
+      - name: Pod install (fresh)
+        script: |
+          set -e
+          cd ios
+          rm -rf Pods Podfile.lock ~/Library/Caches/CocoaPods
+          pod repo update
+          pod install --verbose
+          cd ..
+
+      - name: Build (xcodebuild) with signing disabled
+        script: |
+          set -e
+          xcodebuild -workspace ios/Runner.xcworkspace \
+                     -scheme Runner \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     -archivePath build/Runner.xcarchive \
+                     IPHONEOS_DEPLOYMENT_TARGET=${IOS_MIN_VERSION} \
+                     PRODUCT_BUNDLE_IDENTIFIER=${BUNDLE_ID} \
+                     CODE_SIGNING_ALLOWED=NO \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGN_IDENTITY="" \
+                     DEVELOPMENT_TEAM="" \
+                     PROVISIONING_PROFILE_SPECIFIER="" \
+                     archive
+
+      - name: Package unsigned .ipa
+        script: |
+          set -e
+          APP_PATH="build/Runner.xcarchive/Products/Applications/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            APP_PATH="build/Build/Products/Release-iphoneos/Runner.app"
+          fi
+          if [ ! -d "$APP_PATH" ]; then
+            echo "❌ Runner.app not found"
+            ls -R build || true
+            exit 1
+          fi
+          rm -rf Payload
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/Runner.app
+          /usr/bin/zip -qry "shoof_tv-unsigned.ipa" Payload
+          mv "shoof_tv-unsigned.ipa" "$CM_ARTIFACTS/shoof_tv-unsigned.ipa"
+          echo "✅ Created $CM_ARTIFACTS/shoof_tv-unsigned.ipa"
+
+    artifacts:
+      - $CM_ARTIFACTS/shoof_tv-unsigned.ipa
+      - build/Runner.xcarchive
+      - build/Build/Products/Release-iphoneos/*.app
+
+    triggering:
+      events: []
