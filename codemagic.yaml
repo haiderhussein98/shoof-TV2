@@ -71,14 +71,9 @@ workflows:
           cp -R "$APP_PATH" Payload/
           zip -r -y Runner-unsigned.ipa Payload
 
-          # انشره كأرتيفاكت
-          mkdir -p "$CM_ARTIFACTS"
-          cp -f Runner-unsigned.ipa "$CM_ARTIFACTS/Runner-unsigned.ipa"
-
-          echo "=== Artifact path ==="
-          echo "$CM_ARTIFACTS/Runner-unsigned.ipa"
-          ls -lh "$CM_ARTIFACTS"
+          echo "Built IPA at: $CM_BUILD_DIR/Runner-unsigned.ipa"
+          ls -lh "$CM_BUILD_DIR" || true
 
     artifacts:
-      - $CM_ARTIFACTS/Runner-unsigned.ipa
+      - Runner-unsigned.ipa
       - build_nosign/Release-iphoneos/*.app
