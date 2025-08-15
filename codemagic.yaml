@@ -38,6 +38,7 @@ workflows:
       - name: Build with xcodebuild (no signing) & package IPA
         script: |
           set -e
+          echo "PWD(before): $(pwd)"
           cd ios
           pod install --verbose
 
@@ -65,15 +66,19 @@ workflows:
             exit 1
           fi
 
+          # ارجع لجذر المشروع ثم جهّز ملف الـ IPA في build/artifacts
           cd "$CM_BUILD_DIR"
-          rm -rf Payload Runner-unsigned.ipa
-          mkdir Payload
+          rm -rf Payload build/artifacts
+          mkdir -p Payload build/artifacts
           cp -R "$APP_PATH" Payload/
-          zip -r -y Runner-unsigned.ipa Payload
+          (zip -r -y build/artifacts/Runner-unsigned.ipa Payload)
 
-          echo "Built IPA at: $CM_BUILD_DIR/Runner-unsigned.ipa"
-          ls -lh "$CM_BUILD_DIR" || true
+          echo "PWD(end): $(pwd)"
+          echo "Listing build/artifacts:"
+          ls -lah build/artifacts || true
+          echo "Find any .ipa under repo root:"
+          find . -maxdepth 4 -type f -name "*.ipa" -print
 
     artifacts:
-      - Runner-unsigned.ipa
+      - build/artifacts/Runner-unsigned.ipa
       - build_nosign/Release-iphoneos/*.app
