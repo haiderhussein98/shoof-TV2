@@ -1,5 +1,4 @@
-﻿// ... نفس الاستيرادات التي لديك بالضبط ...
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -90,11 +89,10 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   bool _routeAnimHooked = false;
 
   // ===== واجهة ستلايت =====
-  // نخلي الصف دائماً موجود ونكبر/نصغّر اللوحة اليسرى للعرض صفر عند ملء الشاشة.
   double _leftPaneWidth = 280;
   bool _isFullscreen = false;
 
-  // تحكم جانبي
+  // تحكم جانبي (صغّرنا الأشرطة)
   double _brightness = 1.0;
   double _volume = 70;
   bool _showSideSliders = false;
@@ -790,6 +788,67 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     super.dispose();
   }
 
+  // ===== util صغير لتفادي firstWhere مع orElse=null =====
+  ChannelModel? _findCurrent(List<ChannelModel> all, int? id) {
+    if (id == null) return null;
+    for (final c in all) {
+      if (c.streamId == id) return c;
+    }
+    return null;
+  }
+
+  // ========= قياسات وودجت مُعاد استخدامها لأشرطة السطوع/الصوت القصيرة =========
+  static const double kSideSliderWidth = 12; // كان 20
+  static const double kSideSliderHeight = 160; // ارتفاع ثابت (قصير)
+  static const double kSideTrackHeight = 1.0; // أنحف
+  static const double kSideThumbRadius = 3.5; // مقبض أصغر
+
+  Widget _buildSideSlider({
+    required Alignment alignment,
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+    double bgAlpha = 0.28,
+  }) {
+    return Align(
+      alignment: alignment,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 0).copyWith(
+          left: alignment == Alignment.centerLeft ? 4 : 0,
+          right: alignment == Alignment.centerRight ? 4 : 0,
+        ),
+        child: Container(
+          width: kSideSliderWidth,
+          height: kSideSliderHeight,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: bgAlpha),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 4),
+          child: RotatedBox(
+            quarterTurns: -1,
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: kSideTrackHeight,
+                thumbShape: RoundSliderThumbShape(
+                  enabledThumbRadius: kSideThumbRadius,
+                ),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+              ),
+              child: Slider(
+                value: value,
+                min: min,
+                max: max,
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // =================== Widgets ===================
   Widget _buildChannelInfoBar() {
     final name = _currentChannelName ?? widget.title;
@@ -956,7 +1015,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                             icon: const Icon(Icons.screen_rotation,
                                 color: Colors.white),
                             onPressed: () {
-                              // تدوير يدويًا للفيدوهات فقط
                               final isPortrait =
                                   MediaQuery.of(context).orientation ==
                                       Orientation.portrait;
@@ -989,11 +1047,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                           children: [
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
-                                trackHeight: 1.6,
+                                trackHeight: 1.4,
                                 thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 6),
+                                    enabledThumbRadius: 5),
                                 overlayShape: const RoundSliderOverlayShape(
-                                    overlayRadius: 10),
+                                    overlayRadius: 9),
                               ),
                               child: Slider(
                                 value: _position.inSeconds.toDouble(),
@@ -1034,9 +1092,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                                   ignoring: true,
                                   child: SliderTheme(
                                     data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 1.6,
+                                      trackHeight: 1.4,
                                       thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 5),
+                                          enabledThumbRadius: 4.5),
                                     ),
                                     child: Slider(
                                       value: secs.toDouble(),
@@ -1128,7 +1186,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                           color: Colors.white),
                       onPressed: () {
                         setState(() => _isFullscreen = !_isFullscreen);
-                        // تأكيد التشغيل مباشرة بعد التغيير لتجنب شاشة سوداء
                         Future.microtask(() {
                           if (!_isDisposed) _vlc.play();
                         });
@@ -1152,72 +1209,28 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       style: TextStyle(color: Colors.redAccent, fontSize: 14)),
                 ),
 
-              // أشرطة سطوع/صوت
+              // أشرطة سطوع/صوت (قصيرة وثابتة الارتفاع)
               if (_showSideSliders) ...[
-                Positioned(
-                  left: 4,
-                  top: 40,
-                  bottom: 40,
-                  child: Container(
-                    width: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.30),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                    child: RotatedBox(
-                      quarterTurns: -1,
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 1.6,
-                          thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 5),
-                        ),
-                        child: Slider(
-                          value: _brightness,
-                          min: 0.2,
-                          max: 1.0,
-                          onChanged: (v) => setState(() => _brightness = v),
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildSideSlider(
+                  alignment: Alignment.centerLeft,
+                  value: _brightness,
+                  min: 0.2,
+                  max: 1.0,
+                  onChanged: (v) => setState(() => _brightness = v),
+                  bgAlpha: 0.30,
                 ),
-                Positioned(
-                  right: 4,
-                  top: 40,
-                  bottom: 40,
-                  child: Container(
-                    width: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-                    child: RotatedBox(
-                      quarterTurns: -1,
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 1.6,
-                          thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 5),
-                        ),
-                        child: Slider(
-                          value: _volume,
-                          min: 0,
-                          max: 100,
-                          onChanged: (v) async {
-                            setState(() => _volume = v);
-                            try {
-                              await _vlc.setVolume(v.toInt());
-                            } catch (_) {}
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
+                _buildSideSlider(
+                  alignment: Alignment.centerRight,
+                  value: _volume,
+                  min: 0,
+                  max: 100,
+                  onChanged: (v) async {
+                    setState(() => _volume = v);
+                    try {
+                      await _vlc.setVolume(v.toInt());
+                    } catch (_) {}
+                  },
+                  bgAlpha: 0.18,
                 ),
               ],
             ],
@@ -1233,14 +1246,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         final api = ref.watch(liveServiceProvider);
 
         final future = api.getLiveChannels(offset: 20).then((all) {
-          ChannelModel? current = all.cast<ChannelModel?>().firstWhere(
-                (c) => c?.streamId == _currentStreamId,
-                orElse: () => null,
-              );
+          final current = _findCurrent(all, _currentStreamId);
           _currentCategoryId = current?.categoryId ?? _currentCategoryId;
-          _currentCategoryName = (current?.categoryId ??
-              current?.categoryId ??
-              _currentCategoryName);
+          _currentCategoryName = current?.categoryId ?? _currentCategoryName;
           _currentChannelName ??= current?.name;
 
           if (_currentCategoryId == null) return all.take(50).toList();
@@ -1302,7 +1310,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                   child: ScrollbarTheme(
                     data: ScrollbarThemeData(
                       thumbVisibility: WidgetStateProperty.all(true),
-                      thickness: WidgetStateProperty.all(2.5),
+                      thickness: WidgetStateProperty.all(2.0), // أنحف
                       radius: const Radius.circular(8),
                       trackColor: WidgetStateProperty.all(Colors.transparent),
                       trackBorderColor:
@@ -1388,7 +1396,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     final screen = MediaQuery.of(context).size;
     final ar = _lockedAspectRatio ?? (screen.width / screen.height);
 
-    // نحافظ على الصف دائمًا، ونغيّر عرض اللوحة/الفاصل فقط
     const double kPaneMin = 200.0;
     final double kPaneMax = (screen.width * 0.7).clamp(220.0, 520.0);
     const double kDivider = 4.0;
@@ -1440,7 +1447,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         bottom: false,
         child: Row(
           children: [
-            // اللوحة اليسرى (متحركة العرض لصفر)
+            // اللوحة اليسرى
             AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
@@ -1478,25 +1485,17 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
       ),
     );
 
-    // تأكد أن لديك: import 'dart:async' show unawaited;
-
     return PopScope(
-      // امنع إغلاق الصفحة عندما نكون في البث المباشر وبوضع ملء الشاشة
       canPop: !(_isLive && _isFullscreen),
-
-      // الصيغة الجديدة مع "النتيجة" (result) للـ pop
       onPopInvokedWithResult: (bool didPop, Object? result) {
         if (!didPop) {
-          // لم يحدث الرجوع لأن canPop=false → اخرج من الملء للشاشة فقط
           if (_isLive && _isFullscreen) {
             setState(() => _isFullscreen = false);
           }
           return;
         }
-        // تم الرجوع فعلاً → أعد حالة النظام والاتجاه
-        _restoreSystemOrientationOnce(); // لا تنتظر هنا (callback غير async)
+        _restoreSystemOrientationOnce();
       },
-
       child: PlatformScaffold(
         material: (_, __) =>
             MaterialScaffoldData(backgroundColor: Colors.black),

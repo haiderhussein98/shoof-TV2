@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -18,12 +18,10 @@ class SeriesCenterControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backIcon = isCupertino(context)
-        ? CupertinoIcons.gobackward_10
-        : Icons.replay_10;
-    final fwdIcon = isCupertino(context)
-        ? CupertinoIcons.goforward_10
-        : Icons.forward_10;
+    final backIcon =
+        isCupertino(context) ? CupertinoIcons.gobackward_10 : Icons.replay_10;
+    final fwdIcon =
+        isCupertino(context) ? CupertinoIcons.goforward_10 : Icons.forward_10;
     final playIcon = isCupertino(context)
         ? CupertinoIcons.play_circle_fill
         : Icons.play_circle;
@@ -91,4 +89,3 @@ class SeriesCenterControls extends StatelessWidget {
     );
   }
 }
-

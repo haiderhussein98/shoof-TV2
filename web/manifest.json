@@ -1,6 +1,6 @@
 {
-    "name": "shoof_iptv",
-    "short_name": "shoof_iptv",
+    "name": "shoof_tv",
+    "short_name": "shoof_tv",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

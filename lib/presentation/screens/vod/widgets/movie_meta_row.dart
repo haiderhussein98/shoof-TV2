@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -16,15 +16,12 @@ class MovieMetaRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final releaseIcon = isCupertino(context)
-        ? CupertinoIcons.calendar
-        : Icons.calendar_today;
-    final durationIcon = isCupertino(context)
-        ? CupertinoIcons.time
-        : Icons.access_time;
-    final ratingIcon = isCupertino(context)
-        ? CupertinoIcons.star_fill
-        : Icons.star;
+    final releaseIcon =
+        isCupertino(context) ? CupertinoIcons.calendar : Icons.calendar_today;
+    final durationIcon =
+        isCupertino(context) ? CupertinoIcons.time : Icons.access_time;
+    final ratingIcon =
+        isCupertino(context) ? CupertinoIcons.star_fill : Icons.star;
 
     return Wrap(
       runSpacing: 8,
@@ -58,4 +55,3 @@ class MovieMetaRow extends StatelessWidget {
     );
   }
 }
-

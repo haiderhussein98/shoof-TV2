@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -15,9 +15,8 @@ class MovieTopControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final backIcon = context.platformIcons.back;
-    final rotateIcon = isCupertino(context)
-        ? CupertinoIcons.refresh
-        : Icons.screen_rotation;
+    final rotateIcon =
+        isCupertino(context) ? CupertinoIcons.refresh : Icons.screen_rotation;
 
     return Positioned.fill(
       child: Container(
@@ -61,4 +60,3 @@ class MovieTopControls extends StatelessWidget {
     );
   }
 }
-

@@ -1,11 +1,13 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const Color background = Color(0xFF0D0D0D); // Ø®Ù„ÙÙŠØ© Ø¯Ø§ÙƒÙ†Ø© Ø¬Ø¯Ù‹Ø§
+  static const Color background =
+      Color(0xFF0D0D0D); // Ø®Ù„ÙÙŠØ© Ø¯Ø§ÙƒÙ†Ø© Ø¬Ø¯Ù‹Ø§
   static const Color primaryRed = Color(0xFFE50914); // Ø£Ø­Ù…Ø± Netflix
   static const Color accentBlue = Color(0xFF0096FF); // Ø£Ø²Ø±Ù‚ Ø­Ø¯ÙŠØ«
-  static const Color cardDark = Color(0xFF1A1A1A); // Ø±Ù…Ø§Ø¯ÙŠ Ø¯Ø§ÙƒÙ† Ù„Ù„Ø¨Ø·Ø§Ù‚Ø§Øª
+  static const Color cardDark =
+      Color(0xFF1A1A1A); // Ø±Ù…Ø§Ø¯ÙŠ Ø¯Ø§ÙƒÙ† Ù„Ù„Ø¨Ø·Ø§Ù‚Ø§Øª
   static const Color lightText = Color(0xFFF2F2F2); // Ù†Øµ ÙØ§ØªØ­
   static const Color mutedText = Color(0xFFAAAAAA); // Ù†Øµ Ø®Ø§ÙØª
 }
@@ -24,7 +26,6 @@ class AppTheme {
       secondary: AppColors.accentBlue,
       surface: AppColors.cardDark,
     ),
-
     textTheme: GoogleFonts.tajawalTextTheme(
       // â† Ø§Ø®ØªØ± Ø£ÙŠ Ø®Ø· Ø¹Ø±Ø¨ÙŠ
       const TextTheme(
@@ -57,4 +58,3 @@ class AppTheme {
     dialogTheme: DialogThemeData(backgroundColor: AppColors.cardDark),
   );
 }
-

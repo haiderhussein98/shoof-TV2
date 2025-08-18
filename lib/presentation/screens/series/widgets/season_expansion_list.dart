@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'episode_tile.dart';
@@ -88,8 +88,8 @@ class _CupertinoExpandableSeasonState
   Widget build(BuildContext context) {
     final IconData chevron = isCupertino(context)
         ? (_expanded
-              ? CupertinoIcons.chevron_down
-              : CupertinoIcons.chevron_right)
+            ? CupertinoIcons.chevron_down
+            : CupertinoIcons.chevron_right)
         : (_expanded ? Icons.expand_more : Icons.chevron_right);
 
     return Column(
@@ -127,13 +127,11 @@ class _CupertinoExpandableSeasonState
               );
             }).toList(),
           ),
-          crossFadeState: _expanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 220),
         ),
       ],
     );
   }
 }
-

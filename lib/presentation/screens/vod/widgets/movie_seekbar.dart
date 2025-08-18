@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 
@@ -19,9 +19,8 @@ class MovieSeekbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int posSec = position.inSeconds;
-    final int maxSec = duration.inSeconds > 0
-        ? duration.inSeconds
-        : (posSec + 1);
+    final int maxSec =
+        duration.inSeconds > 0 ? duration.inSeconds : (posSec + 1);
     final double value = posSec.clamp(0, maxSec).toDouble();
     final double max = maxSec.toDouble();
 
@@ -37,17 +36,15 @@ class MovieSeekbar extends StatelessWidget {
               material: (_, __) => Slider(
                 value: value,
                 max: max,
-                onChanged: duration.inSeconds > 0
-                    ? (v) => onSeek(v.toInt())
-                    : null,
+                onChanged:
+                    duration.inSeconds > 0 ? (v) => onSeek(v.toInt()) : null,
               ),
               cupertino: (_, __) => CupertinoSlider(
                 value: value,
                 min: 0,
                 max: max,
-                onChanged: duration.inSeconds > 0
-                    ? (v) => onSeek(v.toInt())
-                    : null,
+                onChanged:
+                    duration.inSeconds > 0 ? (v) => onSeek(v.toInt()) : null,
               ),
             ),
             Row(
@@ -69,4 +66,3 @@ class MovieSeekbar extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:shoof_tv/core/constants/colors.dart';
@@ -21,21 +21,17 @@ class SeriesMetaInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final IconData calIcon = isCupertino(context)
-        ? CupertinoIcons.calendar
-        : Icons.calendar_today;
-    final IconData catIcon = isCupertino(context)
-        ? CupertinoIcons.square_grid_2x2
-        : Icons.category;
+    final IconData calIcon =
+        isCupertino(context) ? CupertinoIcons.calendar : Icons.calendar_today;
+    final IconData catIcon =
+        isCupertino(context) ? CupertinoIcons.square_grid_2x2 : Icons.category;
     final IconData dirIcon = isCupertino(context)
         ? CupertinoIcons.film
         : Icons.movie_creation_outlined;
-    final IconData castIcon = isCupertino(context)
-        ? CupertinoIcons.person_2_fill
-        : Icons.people;
-    final IconData starIcon = isCupertino(context)
-        ? CupertinoIcons.star_fill
-        : Icons.star;
+    final IconData castIcon =
+        isCupertino(context) ? CupertinoIcons.person_2_fill : Icons.people;
+    final IconData starIcon =
+        isCupertino(context) ? CupertinoIcons.star_fill : Icons.star;
 
     return Column(
       children: [
@@ -117,4 +113,3 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
-

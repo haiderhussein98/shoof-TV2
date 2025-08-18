@@ -1,4 +1,4 @@
-﻿class ChannelModel {
+class ChannelModel {
   final int streamId;
   final String name;
   final String streamIcon;
@@ -37,7 +37,6 @@
       serverUrl: serverUrl,
       username: username,
       password: password,
-
       categoryId: json['category_id']?.toString() ?? '',
     );
   }
@@ -45,4 +44,3 @@
   String get streamUrl =>
       '$serverUrl/live/$username/$password/$streamId.$containerExtension';
 }
-

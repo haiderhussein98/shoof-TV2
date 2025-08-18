@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/series_service.dart';
 import 'core_providers.dart';
 
@@ -9,4 +9,3 @@ final seriesServiceProvider = Provider<SeriesService>((ref) {
     ref.watch(passwordProvider),
   );
 });
-

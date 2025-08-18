@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,12 +15,10 @@ class CustomNavigationRail extends ConsumerWidget {
 
     final liveIcon = isCupertino(context) ? CupertinoIcons.tv : Icons.live_tv;
     final moviesIcon = isCupertino(context) ? CupertinoIcons.film : Icons.movie;
-    final seriesIcon = isCupertino(context)
-        ? CupertinoIcons.tv_music_note
-        : Icons.tv;
-    final settingsIcon = isCupertino(context)
-        ? CupertinoIcons.gear_alt
-        : Icons.settings;
+    final seriesIcon =
+        isCupertino(context) ? CupertinoIcons.tv_music_note : Icons.tv;
+    final settingsIcon =
+        isCupertino(context) ? CupertinoIcons.gear_alt : Icons.settings;
 
     final mainItems = [
       _RailItem(icon: liveIcon, label: 'Live', tabIndex: 0),
@@ -86,12 +84,9 @@ extension _RailBuilder on Widget {
               children: [
                 const SizedBox(height: 12),
                 const SizedBox(height: 12),
-
                 const SizedBox(height: 40, width: 40),
-
                 const SizedBox(height: 8),
                 const SizedBox(height: 8),
-
                 Expanded(
                   child: MediaQuery.removePadding(
                     context: context,
@@ -110,15 +105,14 @@ extension _RailBuilder on Widget {
                           icon: item.icon,
                           label: item.label,
                           selected: selected,
-                          onTap: () =>
-                              ref.read(homeIndexProvider.notifier).state =
-                                  item.tabIndex,
+                          onTap: () => ref
+                              .read(homeIndexProvider.notifier)
+                              .state = item.tabIndex,
                         );
                       },
                     ),
                   ),
                 ),
-
                 SafeArea(
                   top: false,
                   child: _RailTile(
@@ -199,4 +193,3 @@ class _RailTile extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,12 +13,10 @@ class CustomNavigationBar extends ConsumerWidget {
 
     final liveIcon = isCupertino(context) ? CupertinoIcons.tv : Icons.live_tv;
     final moviesIcon = isCupertino(context) ? CupertinoIcons.film : Icons.movie;
-    final seriesIcon = isCupertino(context)
-        ? CupertinoIcons.tv_music_note
-        : Icons.tv;
-    final settingsIcon = isCupertino(context)
-        ? CupertinoIcons.gear_alt
-        : Icons.settings;
+    final seriesIcon =
+        isCupertino(context) ? CupertinoIcons.tv_music_note : Icons.tv;
+    final settingsIcon =
+        isCupertino(context) ? CupertinoIcons.gear_alt : Icons.settings;
 
     return PlatformNavBar(
       currentIndex: index,
@@ -44,4 +42,3 @@ class CustomNavigationBar extends ConsumerWidget {
     );
   }
 }
-

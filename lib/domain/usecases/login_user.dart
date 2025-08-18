@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shoof_tv/domain/providers/core_providers.dart';
@@ -30,9 +30,8 @@ Future<bool> loginUser({
     for (final base in urlsToTry) {
       final url = '$base/player_api.php?username=$username&password=$password';
       try {
-        final res = await http
-            .get(Uri.parse(url))
-            .timeout(const Duration(seconds: 5));
+        final res =
+            await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
         final json = jsonDecode(res.body);
         if (json is Map && json.containsKey('user_info')) {
           workingServer = base;
@@ -57,4 +56,3 @@ Future<bool> loginUser({
     return false;
   }
 }
-

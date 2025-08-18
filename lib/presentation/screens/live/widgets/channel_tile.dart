@@ -1,6 +1,8 @@
 ﻿import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shoof_tv/core/responsive.dart';
 import 'package:shoof_tv/domain/providers/live_providers.dart';
@@ -46,7 +48,22 @@ class ChannelTile extends ConsumerWidget {
 
     void defaultNavigate() {
       final navigator = Navigator.of(context);
-      navigator.push(
+
+      // 1) بدّل للوضع الأفقي قبل بدء الانتقال لتفادي “نتعة” التحويل أثناء الأنيميشن.
+      if (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        // ما ننتظر الـ Future عشان ما نأخر الـ push
+        // ignore: discarded_futures
+        SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+      }
+
+      // 2) ادخل للشاشة
+      navigator
+          .push(
         _smoothRoute(
           LivePlayerScreen(
             serverUrl: api.serverUrl,
@@ -56,7 +73,20 @@ class ChannelTile extends ConsumerWidget {
             title: channel.name,
           ),
         ),
-      );
+      )
+          // 3) عند الخروج، ارجع للوضع الرأسي بسلاسة.
+          .whenComplete(() {
+        if (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) {
+          // ignore: discarded_futures
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          // ignore: discarded_futures
+          SystemChrome.setPreferredOrientations(const [
+            DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+          ]);
+        }
+      });
     }
 
     const headers = {'User-Agent': 'Mozilla/5.0'};

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -101,4 +101,3 @@ class _VodScreenState extends ConsumerState<VodScreen> {
     );
   }
 }
-

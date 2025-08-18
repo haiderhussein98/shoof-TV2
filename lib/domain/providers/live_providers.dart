@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/live_service.dart';
 import 'core_providers.dart';
 
@@ -9,4 +9,3 @@ final liveServiceProvider = Provider<LiveService>((ref) {
     ref.watch(passwordProvider),
   );
 });
-

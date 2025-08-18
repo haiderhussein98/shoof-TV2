@@ -1,4 +1,4 @@
-﻿class MovieModel {
+class MovieModel {
   final int streamId;
   final String name;
   final String streamType;
@@ -64,10 +64,8 @@
       description: json['info']?['plot'],
       youtubeTrailer: json['info']?['youtube_trailer'],
       rating: json['info']?['rating'],
-
       streamUrl:
           json['info']?['movie_data']?['stream_url'] ?? json['stream_url'],
     );
   }
 }
-

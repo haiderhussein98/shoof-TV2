@@ -141,7 +141,7 @@ msix_config:
   display_name: Shoof TV
   publisher_display_name: Shoof
   identity_name: com.shoof.tv
-  msix_version: 1.0.1.2
+  msix_version: 1.0.1.3
   logo_path: assets/images/logo.png
   start_menu: true
   desktop_icon: true
@@ -149,6 +149,6 @@ msix_config:
   capabilities: "internetClient, privateNetworkClientServer"
 
   publisher: CN=ShoofTV
-  certificate_path: windows/runner/shoof.pfx   
-  certificate_password: "123456"
+  certificate_path: C:\Users\lenovo\Desktop\SHOOF_IPTV\shoof_iptv\build\windows\x64\runner\Release\shoof.pfx
+  certificate_password: ShoofTV_Pfx_123!
 

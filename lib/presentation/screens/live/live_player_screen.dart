@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart'
+import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -52,4 +52,3 @@ class LivePlayerScreen extends StatelessWidget {
     );
   }
 }
-

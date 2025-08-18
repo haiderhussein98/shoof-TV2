@@ -1,4 +1,4 @@
-﻿import '../../../../data/models/channel_model.dart';
+import '../../../../data/models/channel_model.dart';
 
 class LiveState {
   final List<Map<String, String>> categories;
@@ -22,14 +22,14 @@ class LiveState {
   });
 
   LiveState.initial()
-    : categories = [],
-      allChannels = [],
-      channelCountByCategory = {},
-      selectedCategoryId = 'all',
-      isLoading = true,
-      isLoadingMore = false,
-      hasMore = true,
-      offset = 0;
+      : categories = [],
+        allChannels = [],
+        channelCountByCategory = {},
+        selectedCategoryId = 'all',
+        isLoading = true,
+        isLoadingMore = false,
+        hasMore = true,
+        offset = 0;
 
   LiveState copyWith({
     List<Map<String, String>>? categories,
@@ -54,4 +54,3 @@ class LiveState {
     );
   }
 }
-
