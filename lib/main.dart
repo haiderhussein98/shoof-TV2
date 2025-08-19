@@ -1,4 +1,7 @@
-﻿import 'dart:async';
+﻿// main.dart
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,40 +27,81 @@ Future<bool> _isAndroidTV() async {
 }
 
 Future<void> main() async {
+  // ضروري قبل أي استعمال لمنصّة/قنوات/صور
   WidgetsFlutterBinding.ensureInitialized();
-  PaintingBinding.instance.imageCache.maximumSize = 100;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20;
 
-  final bool isDesktop = !kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.linux ||
-          defaultTargetPlatform == TargetPlatform.macOS);
-
-  if (isDesktop) {
-    mk.MediaKit.ensureInitialized();
-    await windowManager.ensureInitialized();
-    const windowOptions = WindowOptions(
-      minimumSize: Size(1100, 700),
-      center: true,
-      titleBarStyle: TitleBarStyle.normal,
+  // ✅ لاقط أخطاء Flutter (حتى في الإصدار)
+  FlutterError.onError = (FlutterErrorDetails details) {
+    Zone.current.handleUncaughtError(
+      details.exception,
+      details.stack ?? StackTrace.current,
     );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      await windowManager.show();
-      await windowManager.focus();
-    });
-  } else {
-    final tv = await _isAndroidTV();
-    if (!tv) {
-      await SystemChrome.setPreferredOrientations(const [
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    } else {
-      await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    }
-  }
+  };
 
-  runApp(const ProviderScope(child: ShoofIPTVApp()));
+  // ✅ ودجت خطأ بديل بدل شاشة سوداء إذا تعثّر بناء ويدجت
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    // اطبع الخطأ في السجل
+    debugPrint('WIDGET BUILD ERROR: ${details.exceptionAsString()}');
+    // ودجت بسيطة غير فاضحة للمستخدم النهائي
+    return const Material(
+      color: Colors.black,
+      child: Center(
+        child: Text(
+          'Something went wrong',
+          style: TextStyle(color: Colors.white70),
+        ),
+      ),
+    );
+  };
+
+  // ✅ التقط أي أخطاء من طبقة المنصّة (iOS/Android)
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    debugPrint('UNCAUGHT (PlatformDispatcher): $error\n$stack');
+    // return true لمنع إغلاق التطبيق
+    return true;
+  };
+
+  // ✅ منطقة محميّة لالتقاط جميع الاستثناءات غير الملتقطة
+  await runZonedGuarded<Future<void>>(() async {
+    // ضبط الكاش للصور
+    PaintingBinding.instance.imageCache.maximumSize = 100;
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 60 << 20;
+
+    final bool isDesktop = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.macOS);
+
+    if (isDesktop) {
+      mk.MediaKit.ensureInitialized();
+      await windowManager.ensureInitialized();
+      const windowOptions = WindowOptions(
+        minimumSize: Size(1100, 700),
+        center: true,
+        titleBarStyle: TitleBarStyle.normal,
+      );
+      // لا تنتظر هنا؛ سيُظهر النافذة عند الجاهزية
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      });
+    } else {
+      final tv = await _isAndroidTV();
+      if (!tv) {
+        await SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+      } else {
+        await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+      }
+    }
+
+    runApp(const ProviderScope(child: ShoofIPTVApp()));
+  }, (Object error, StackTrace stack) {
+    // أي استثناء يصل هنا غالبًا كان سيتسبب بشاشة سوداء
+    debugPrint('UNCAUGHT (Zone): $error\n$stack');
+  });
 }
 
 class ShoofIPTVApp extends StatefulWidget {
