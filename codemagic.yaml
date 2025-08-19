@@ -56,7 +56,6 @@ workflows:
           flutter_ios_podfile_setup
 
           target 'Runner' do
-            # static linkage يساعد بعض أدوات sideload
             use_frameworks! :linkage => :static
             use_modular_headers!
             flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -96,12 +95,8 @@ workflows:
           set -e
           flutter build ios --release --no-codesign
 
-      # تحضير IPA ملائم لـ eSign/AppleJr:
-      # - فك أي symlinks داخل Runner.app
-      # - حذف أي توقيعات سابقة (_CodeSignature)
-      # - حذف embedded.mobileprovision
-      # - ضغط إلى shoof_tv-unsigned.ipa
-           - name: Package unsigned .ipa (eSign-friendly)
+      # تحضير IPA ملائم لـ eSign/AppleJr: فك symlinks + إزالة التواقيع القديمة
+      - name: Package unsigned .ipa (eSign-friendly)
         script: |
           set -e
           APP_PATH=""
@@ -132,16 +127,16 @@ workflows:
           # ضغط إلى IPA في المجلد الحالي
           /usr/bin/zip -qry "shoof_tv-unsigned.ipa" Payload
 
-          # اختر مجلد الأرتيفاكتس: استخدم CM_ARTIFACTS إن وُجد، وإلا مجلد محلي artifacts/
+          # اضمن ظهور الأرتيفاكت حتى لو CM_ARTIFACTS غير معرّف
           ART_DIR="${CM_ARTIFACTS:-$(pwd)/artifacts}"
           mkdir -p "$ART_DIR"
           echo "📦 Artifact dir: $ART_DIR"
           mv -f "shoof_tv-unsigned.ipa" "$ART_DIR/shoof_tv-unsigned.ipa"
           echo "✅ Created $ART_DIR/shoof_tv-unsigned.ipa"
 
-
     artifacts:
       - $CM_ARTIFACTS/shoof_tv-unsigned.ipa
+      - artifacts/shoof_tv-unsigned.ipa
 
     triggering:
       events: []
