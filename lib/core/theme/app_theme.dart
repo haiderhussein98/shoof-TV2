@@ -1,18 +1,36 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const Color background =
-      Color(0xFF0D0D0D); // Ø®Ù„ÙÙŠØ© Ø¯Ø§ÙƒÙ†Ø© Ø¬Ø¯Ù‹Ø§
-  static const Color primaryRed = Color(0xFFE50914); // Ø£Ø­Ù…Ø± Netflix
-  static const Color accentBlue = Color(0xFF0096FF); // Ø£Ø²Ø±Ù‚ Ø­Ø¯ÙŠØ«
-  static const Color cardDark =
-      Color(0xFF1A1A1A); // Ø±Ù…Ø§Ø¯ÙŠ Ø¯Ø§ÙƒÙ† Ù„Ù„Ø¨Ø·Ø§Ù‚Ø§Øª
-  static const Color lightText = Color(0xFFF2F2F2); // Ù†Øµ ÙØ§ØªØ­
-  static const Color mutedText = Color(0xFFAAAAAA); // Ù†Øµ Ø®Ø§ÙØª
+  static const Color background = Color(0xFF0D0D0D);
+  static const Color primaryRed = Color(0xFFE50914);
+  static const Color accentBlue = Color(0xFF0096FF);
+  static const Color cardDark = Color(0xFF1A1A1A);
+  static const Color lightText = Color(0xFFF2F2F2);
+  static const Color mutedText = Color(0xFFAAAAAA);
 }
 
 class AppTheme {
+  /// نبني TextTheme مع فالـباك إذا فشل GoogleFonts (احتراز لإصدارات iOS)
+  static TextTheme _buildTextThemeSafely() {
+    try {
+      return GoogleFonts.tajawalTextTheme(
+        const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
+      );
+    } catch (e, s) {
+      // اطبع السبب، واستخدم الثيم الافتراضي كفالـباك
+      debugPrint('[AppTheme] GoogleFonts.tajawalTextTheme failed: $e');
+      debugPrint(s.toString());
+      return const TextTheme(
+        bodyLarge: TextStyle(color: Colors.white),
+        bodyMedium: TextStyle(color: Colors.white70),
+      );
+    }
+  }
+
   static final darkTheme = ThemeData.dark().copyWith(
     scaffoldBackgroundColor: AppColors.background,
     primaryColor: AppColors.primaryRed,
@@ -26,20 +44,14 @@ class AppTheme {
       secondary: AppColors.accentBlue,
       surface: AppColors.cardDark,
     ),
-    textTheme: GoogleFonts.tajawalTextTheme(
-      // â† Ø§Ø®ØªØ± Ø£ÙŠ Ø®Ø· Ø¹Ø±Ø¨ÙŠ
-      const TextTheme(
-        bodyLarge: TextStyle(color: Colors.white),
-        bodyMedium: TextStyle(color: Colors.white70),
-      ),
-    ),
+    textTheme: _buildTextThemeSafely(),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.primaryRed,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.cardDark,
-      hintStyle: TextStyle(color: AppColors.mutedText),
+      hintStyle: const TextStyle(color: AppColors.mutedText),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -55,6 +67,8 @@ class AppTheme {
     ),
     iconTheme: const IconThemeData(color: AppColors.lightText),
     cardColor: AppColors.cardDark,
-    dialogTheme: DialogThemeData(backgroundColor: AppColors.cardDark),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: AppColors.cardDark,
+    ),
   );
 }
