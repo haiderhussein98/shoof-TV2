@@ -101,7 +101,7 @@ workflows:
       # - حذف أي توقيعات سابقة (_CodeSignature)
       # - حذف embedded.mobileprovision
       # - ضغط إلى shoof_tv-unsigned.ipa
-      - name: Package unsigned .ipa (eSign-friendly)
+           - name: Package unsigned .ipa (eSign-friendly)
         script: |
           set -e
           APP_PATH=""
@@ -120,19 +120,25 @@ workflows:
           # تحقق من flutter_assets
           test -d "$APP_PATH/Frameworks/App.framework/flutter_assets" || { echo "❌ flutter_assets missing"; exit 1; }
 
-          # نحضّر Payload مع فكّ symlinks (rsync -aL)
+          # نحضّر Payload مع فكّ symlinks
           rm -rf Payload
           mkdir -p Payload/Runner.app
           rsync -aL "$APP_PATH/" "Payload/Runner.app/"
 
-          # إزالة أي تواقيع/بروفايلات قديمة ليوقّعها eSign من الصفر
+          # إزالة أي تواقيع/بروفايلات قديمة
           find "Payload/Runner.app" -name "_CodeSignature" -type d -exec rm -rf {} +
           rm -f "Payload/Runner.app/embedded.mobileprovision"
 
-          # ضغط إلى IPA
+          # ضغط إلى IPA في المجلد الحالي
           /usr/bin/zip -qry "shoof_tv-unsigned.ipa" Payload
-          mv "shoof_tv-unsigned.ipa" "$CM_ARTIFACTS/shoof_tv-unsigned.ipa"
-          echo "✅ Created $CM_ARTIFACTS/shoof_tv-unsigned.ipa"
+
+          # اختر مجلد الأرتيفاكتس: استخدم CM_ARTIFACTS إن وُجد، وإلا مجلد محلي artifacts/
+          ART_DIR="${CM_ARTIFACTS:-$(pwd)/artifacts}"
+          mkdir -p "$ART_DIR"
+          echo "📦 Artifact dir: $ART_DIR"
+          mv -f "shoof_tv-unsigned.ipa" "$ART_DIR/shoof_tv-unsigned.ipa"
+          echo "✅ Created $ART_DIR/shoof_tv-unsigned.ipa"
+
 
     artifacts:
       - $CM_ARTIFACTS/shoof_tv-unsigned.ipa
