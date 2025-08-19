@@ -141,7 +141,21 @@ class _ShoofIPTVAppState extends State<ShoofIPTVApp>
       debugShowCheckedModeBanner: false,
       title: 'Shoof TV',
       theme: AppTheme.darkTheme,
-      home: const SplashScreen(),
+      home: const _HelloTest(),
+    );
+  }
+}
+
+class _HelloTest extends StatelessWidget {
+  const _HelloTest({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Text('Hello iOS',
+            style: TextStyle(color: Colors.white, fontSize: 22)),
+      ),
     );
   }
 }
