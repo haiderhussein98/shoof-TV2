@@ -25,6 +25,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   bool loading = false;
   String? error;
 
+  bool _acceptedTerms = false;
+
   @override
   void dispose() {
     serverController.dispose();
@@ -106,13 +108,31 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _submit(),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          CheckboxListTile(
+            value: _acceptedTerms,
+            onChanged: (v) => setState(() => _acceptedTerms = v ?? false),
+            controlAffinity: ListTileControlAffinity.leading,
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            activeColor: Colors.redAccent,
+            checkColor: Colors.white,
+            title: const Text(
+              textAlign: TextAlign.right,
+              'اوافق على شروط الاستخدام و سياسة الخصوصية ',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
           loading
               ? const CircularProgressIndicator()
               : SizedBox(
                   width: double.infinity,
                   child: PlatformElevatedButton(
-                    onPressed: _submit,
+                    onPressed: _acceptedTerms ? _submit : null,
                     child: const Text("ADD PLAYLIST"),
                     material: (_, __) => MaterialElevatedButtonData(
                       style: ElevatedButton.styleFrom(

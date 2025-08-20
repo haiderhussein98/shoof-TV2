@@ -1,4 +1,4 @@
-package com.example.shoof_tv
+package com.shooftv.player
 
 import io.flutter.embedding.android.FlutterActivity
 

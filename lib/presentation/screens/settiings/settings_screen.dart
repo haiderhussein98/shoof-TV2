@@ -55,125 +55,261 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: physics,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            UserInfoCard(
-              username: username,
-              isActive: isActive,
-              isTablet: isTablet,
-            ),
-            const SizedBox(height: 20),
-            SubscriptionInfoCard(
-              startDate: formattedStart,
-              endDate: formattedEnd,
-              isTablet: isTablet,
-            ),
-            const SizedBox(height: 20),
-            const SpeedTestCard(),
-            const SizedBox(height: 30),
-
-            // Dark mode row
-            PlatformWidget(
-              material: (_, __) => Column(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const _AnimatedGradientBackground(),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: physics,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.color_lens, color: Colors.white),
-                    title: const Text(
-                      "الوضع الداكن",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    trailing: PlatformSwitch(
-                      value: true,
-                      onChanged: (_) {},
-                      material: (_, __) =>
-                          MaterialSwitchData(activeColor: Colors.green),
+                  // بطاقة معلومات المستخدم (كما هي)
+                  _FrostedCard(
+                    // ← الاسم نفسه لكن تصميم صلب
+                    child: UserInfoCard(
+                      username: username,
+                      isActive: isActive,
+                      isTablet: isTablet,
                     ),
                   ),
-                  const Divider(color: Colors.white24),
-                ],
-              ),
-              cupertino: (_, __) => Column(
-                children: [
-                  CupertinoListTile(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: Colors.transparent,
-                    leading: const Icon(
-                      CupertinoIcons.paintbrush,
-                      color: Colors.white,
+                  const SizedBox(height: 16),
+
+                  // بطاقة الاشتراك (كما هي)
+                  _SectionHeader(title: 'Subscription'),
+                  const SizedBox(height: 8),
+                  _FrostedCard(
+                    child: SubscriptionInfoCard(
+                      startDate: formattedStart,
+                      endDate: formattedEnd,
+                      isTablet: isTablet,
                     ),
-                    title: const Text(
-                      "الوضع الداكن",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    trailing: PlatformSwitch(value: true, onChanged: (_) {}),
                   ),
-                  const Divider(color: Colors.white24, height: 1),
+                  const SizedBox(height: 16),
+
+                  // اختبار السرعة (كما هو)
+                  _SectionHeader(title: 'Speed Test'),
+                  const SizedBox(height: 8),
+                  const _FrostedCard(
+                    child: SpeedTestCard(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // الوضع الداكن
+                  _SectionHeader(title: 'Appearance'),
+                  const SizedBox(height: 8),
+                  _FrostedCard(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: PlatformWidget(
+                      material: (_, __) => Column(
+                        children: [
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.color_lens,
+                                color: Colors.white),
+                            title: const Text(
+                              "الوضع الداكن",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            trailing: PlatformSwitch(
+                              value: true,
+                              onChanged: (_) {},
+                              material: (_, __) =>
+                                  MaterialSwitchData(activeColor: Colors.green),
+                            ),
+                          ),
+                          const Divider(color: Colors.white24, height: 1),
+                        ],
+                      ),
+                      cupertino: (_, __) => Column(
+                        children: [
+                          CupertinoListTile(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Colors.transparent,
+                            leading: const Icon(CupertinoIcons.paintbrush,
+                                color: Colors.white),
+                            title: const Text("الوضع الداكن",
+                                style: TextStyle(color: Colors.white)),
+                            trailing:
+                                PlatformSwitch(value: true, onChanged: (_) {}),
+                          ),
+                          const Divider(color: Colors.white24, height: 1),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // تسجيل الخروج
+                  _SectionHeader(title: 'Account'),
+                  const SizedBox(height: 8),
+                  _FrostedCard(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    child: PlatformWidget(
+                      material: (_, __) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.logout, color: Colors.white),
+                        title: const Text("Logout",
+                            style: TextStyle(color: Colors.white)),
+                        trailing: const Icon(Icons.chevron_right,
+                            color: Colors.white54),
+                        onTap: () async {
+                          final navigator = Navigator.of(context);
+                          final container = ProviderScope.containerOf(context);
+
+                          await ref.read(authProvider.notifier).logout();
+                          if (!context.mounted) return;
+                          container.invalidate(authProvider);
+
+                          navigator.pushAndRemoveUntil(
+                            platformPageRoute(
+                              context: context,
+                              builder: (_) => const SplashScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                      ),
+                      cupertino: (_, __) => CupertinoListTile(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Colors.transparent,
+                        leading: const Icon(CupertinoIcons.square_arrow_right,
+                            color: Colors.white),
+                        title: const Text("Logout",
+                            style: TextStyle(color: Colors.white)),
+                        trailing: const Icon(CupertinoIcons.chevron_forward,
+                            color: Colors.white54),
+                        onTap: () async {
+                          final navigator = Navigator.of(context);
+                          final container = ProviderScope.containerOf(context);
+
+                          await ref.read(authProvider.notifier).logout();
+                          if (!context.mounted) return;
+                          container.invalidate(authProvider);
+
+                          navigator.pushAndRemoveUntil(
+                            platformPageRoute(
+                              context: context,
+                              builder: (_) => const SplashScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-
-            // Logout row
-            PlatformWidget(
-              material: (_, __) => ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.logout, color: Colors.white),
-                title: const Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () async {
-                  final navigator = Navigator.of(context);
-                  final container = ProviderScope.containerOf(context);
-
-                  await ref.read(authProvider.notifier).logout();
-                  if (!context.mounted) return;
-                  container.invalidate(authProvider);
-
-                  navigator.pushAndRemoveUntil(
-                    platformPageRoute(
-                      context: context,
-                      builder: (_) => const SplashScreen(),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ),
-              cupertino: (_, __) => CupertinoListTile(
-                padding: EdgeInsets.zero,
-                backgroundColor: Colors.transparent,
-                leading: const Icon(
-                  CupertinoIcons.square_arrow_right,
-                  color: Colors.white,
-                ),
-                title: const Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () async {
-                  final navigator = Navigator.of(context);
-                  final container = ProviderScope.containerOf(context);
-
-                  await ref.read(authProvider.notifier).logout();
-                  if (!context.mounted) return;
-                  container.invalidate(authProvider);
-
-                  navigator.pushAndRemoveUntil(
-                    platformPageRoute(
-                      context: context,
-                      builder: (_) => const SplashScreen(),
-                    ),
-                    (route) => false,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// خلفية متدرجة ناعمة
+class _AnimatedGradientBackground extends StatefulWidget {
+  const _AnimatedGradientBackground();
+
+  @override
+  State<_AnimatedGradientBackground> createState() =>
+      _AnimatedGradientBackgroundState();
+}
+
+class _AnimatedGradientBackgroundState
+    extends State<_AnimatedGradientBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(seconds: 12))
+        ..repeat(reverse: true);
+  late final Animation<double> _t =
+      CurvedAnimation(parent: _c, curve: Curves.easeInOut);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _t,
+      builder: (_, __) {
+        final stops = [0.0, 0.55 + 0.2 * _t.value, 1.0];
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              stops: stops,
+              colors: const [
+                Color(0xFF0D0D0F),
+                Color(0xFF16161A),
+                Color(0xFF1F1B24),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// عنوان قسم صغير أبيض
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      textAlign: TextAlign.start,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: Colors.white70,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.3,
+          ),
+    );
+  }
+}
+
+/// بطاقة “صلبة” داكنة (اسمها بقي _FrostedCard لكن بلا أي زجاج)
+class _FrostedCard extends StatelessWidget {
+  const _FrostedCard({
+    required this.child,
+    this.padding = const EdgeInsets.all(12),
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212), // داكن صلب
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: .08), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black54,
+            blurRadius: 14,
+            spreadRadius: -4,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

@@ -11,7 +11,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shoof_tv/domain/providers/live_providers.dart';
+import 'package:shoof_tv/presentation/screens/live/viewmodel/live_viewmodel.dart';
 import 'package:shoof_tv/data/models/channel_model.dart';
 
 enum ContentType { live, movie, series }
@@ -88,11 +88,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   bool _orientationRestored = false;
   bool _routeAnimHooked = false;
 
-  // ===== واجهة ستلايت =====
+  // ===== واجهة =====
   double _leftPaneWidth = 280;
   bool _isFullscreen = false;
 
-  // تحكم جانبي (صغّرنا الأشرطة)
+  // تحكم جانبي
   double _brightness = 1.0;
   double _volume = 70;
   bool _showSideSliders = false;
@@ -103,6 +103,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   String? _currentCategoryName;
   String? _currentChannelName;
   bool _isSwitchingChannel = false;
+
+  // مزامنة مع الـ ViewModel لمرة واحدة
+  bool _vmSynced = false;
 
   final ScrollController _leftPaneScroll = ScrollController();
 
@@ -251,7 +254,6 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     _isSwitchingChannel = true;
     setState(() {
       _currentCategoryId = ch.categoryId;
-      _currentCategoryName = ch.categoryId;
       _currentChannelName = ch.name;
     });
 
@@ -797,11 +799,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     return null;
   }
 
-  // ========= قياسات وودجت مُعاد استخدامها لأشرطة السطوع/الصوت القصيرة =========
-  static const double kSideSliderWidth = 12; // كان 20
-  static const double kSideSliderHeight = 160; // ارتفاع ثابت (قصير)
-  static const double kSideTrackHeight = 1.0; // أنحف
-  static const double kSideThumbRadius = 3.5; // مقبض أصغر
+  // ========= قياسات وودجت مُعاد استخدامها لأشرطة السطوع/الصوت =========
+  static const double kSideSliderWidth = 14;
+  static const double kSideSliderHeight = 140;
+  static const double kSideTrackHeight = 2.0;
+  static const double kSideThumbRadius = 5.0;
 
   Widget _buildSideSlider({
     required Alignment alignment,
@@ -814,27 +816,27 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     return Align(
       alignment: alignment,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 0).copyWith(
-          left: alignment == Alignment.centerLeft ? 4 : 0,
-          right: alignment == Alignment.centerRight ? 4 : 0,
+        // إبعاد الأشرطة عن الحواف السوداء
+        padding: EdgeInsets.only(
+          left: alignment == Alignment.centerLeft ? 16 : 0,
+          right: alignment == Alignment.centerRight ? 16 : 0,
         ),
         child: Container(
           width: kSideSliderWidth,
           height: kSideSliderHeight,
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: bgAlpha),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(10),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
           child: RotatedBox(
             quarterTurns: -1,
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 trackHeight: kSideTrackHeight,
-                thumbShape: RoundSliderThumbShape(
-                  enabledThumbRadius: kSideThumbRadius,
-                ),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
+                thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: kSideThumbRadius),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
               ),
               child: Slider(
                 value: value,
@@ -850,9 +852,11 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
   }
 
   // =================== Widgets ===================
-  Widget _buildChannelInfoBar() {
+  Widget _buildChannelInfoBar(String categoryNameForUi) {
     final name = _currentChannelName ?? widget.title;
-    final cat = _currentCategoryName ?? 'غير محدد';
+    final cat = categoryNameForUi.isNotEmpty
+        ? categoryNameForUi
+        : (_currentCategoryName ?? 'غير محدد');
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -942,9 +946,9 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                 child: IgnorePointer(
                   ignoring: true,
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: const Duration(milliseconds: 180),
                     color: Colors.black.withValues(
-                      alpha: ((1 - _brightness) * 0.6).clamp(0.0, 1.0),
+                      alpha: ((1 - _brightness) * 0.55).clamp(0.0, 1.0),
                     ),
                   ),
                 ),
@@ -1039,19 +1043,19 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
               // شريط تقدم/وقت
               if (_showControls)
                 Positioned(
-                  left: 8,
-                  right: 8,
-                  bottom: 8,
+                  left: 12,
+                  right: 12,
+                  bottom: 12,
                   child: _isVod
                       ? Column(
                           children: [
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
-                                trackHeight: 1.4,
+                                trackHeight: 2,
                                 thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 5),
+                                    enabledThumbRadius: 6),
                                 overlayShape: const RoundSliderOverlayShape(
-                                    overlayRadius: 9),
+                                    overlayRadius: 10),
                               ),
                               child: Slider(
                                 value: _position.inSeconds.toDouble(),
@@ -1082,37 +1086,8 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                             ),
                           ],
                         )
-                      : ValueListenableBuilder<VlcPlayerValue>(
-                          valueListenable: _vlc,
-                          builder: (context, v, _) {
-                            final secs = v.position.inSeconds;
-                            return Column(
-                              children: [
-                                IgnorePointer(
-                                  ignoring: true,
-                                  child: SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 1.4,
-                                      thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 4.5),
-                                    ),
-                                    child: Slider(
-                                      value: secs.toDouble(),
-                                      max: (secs + 1).toDouble(),
-                                      onChanged: (_) {},
-                                    ),
-                                  ),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(_formatTime(v.position),
-                                      style: const TextStyle(
-                                          color: Colors.white, fontSize: 12)),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                      : const SizedBox
+                          .shrink(), // لا نعرض أي شريط في البث المباشر
                 ),
 
               // أزرار تشغيل/إيقاف
@@ -1132,7 +1107,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       const SizedBox(width: 12),
                       IconButton(
                         focusNode: _playPauseFocus,
-                        iconSize: 40,
+                        iconSize: 44,
                         icon: Icon(
                           (_isVod ? _vodIsPlaying : _vlc.value.isPlaying)
                               ? Icons.pause_circle
@@ -1209,7 +1184,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       style: TextStyle(color: Colors.redAccent, fontSize: 14)),
                 ),
 
-              // أشرطة سطوع/صوت (قصيرة وثابتة الارتفاع)
+              // أشرطة سطوع/صوت (أنحف – أبعدناها عن الحواف)
               if (_showSideSliders) ...[
                 _buildSideSlider(
                   alignment: Alignment.centerLeft,
@@ -1240,152 +1215,199 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     );
   }
 
+  /// اللوحة اليسرى: تعتمد على LiveViewModel بدل النداء المباشر للخدمة
   Widget _buildLeftChannelsPane() {
     return Consumer(
       builder: (context, ref, _) {
-        final api = ref.watch(liveServiceProvider);
+        final st = ref.watch(liveViewModelProvider);
+        final vm = ref.read(liveViewModelProvider.notifier);
 
-        final future = api.getLiveChannels(offset: 20).then((all) {
-          final current = _findCurrent(all, _currentStreamId);
-          _currentCategoryId = current?.categoryId ?? _currentCategoryId;
-          _currentCategoryName = current?.categoryId ?? _currentCategoryName;
-          _currentChannelName ??= current?.name;
+        // تهيئة عند الحاجة
+        if (!st.isLoading && st.categories.isEmpty) {
+          // لا نستخدم setState هنا لكي لا ندخل في لووب؛ هذا نداء آمن بعد الإطار الحالي
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            vm.initialize();
+          });
+        }
 
-          if (_currentCategoryId == null) return all.take(50).toList();
-          return all.where((c) => c.categoryId == _currentCategoryId).toList();
-        });
+        // حاول معرفة القناة الحالية من الحالة
+        ChannelModel? current = _findCurrent(st.allChannels, _currentStreamId);
 
-        return FutureBuilder<List<ChannelModel>>(
-          future: future,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+        // إذا لم نجدها والـ state على "عرض الكل" فهذا طبيعي (ستظهر كل القنوات)
+        // إن وجدناها، نزامن التصنيف المختار مع تصنيف القناة الحالية مرة واحدة
+        final currentCatId = current?.categoryId ?? st.selectedCategoryId;
+        final categoryNameFromVm = () {
+          final m = st.categories
+              .cast<Map<String, String>>()
+              .where((e) => e['id'] == currentCatId);
+          return m.isNotEmpty ? (m.first['name'] ?? '') : '';
+        }();
+
+        if (!_vmSynced && _isLive && currentCatId.isNotEmpty) {
+          _vmSynced = true;
+          if (st.selectedCategoryId != currentCatId) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              vm.fetchChannelsByCategory(currentCatId);
+            });
+          }
+        }
+
+        // حدث اسم القناة الحالية للعرض
+        if (current != null && _currentChannelName != current.name) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentChannelName = current.name;
+                _currentCategoryId = current.categoryId;
+                _currentCategoryName = categoryNameFromVm;
+              });
             }
-            final channels = snapshot.data!;
-            if (channels.isEmpty) {
-              return const Center(
-                child: Text('لا توجد قنوات لهذا التصنيف',
-                    style: TextStyle(color: Colors.white70)),
-              );
+          });
+        } else if (_currentCategoryName != categoryNameFromVm &&
+            categoryNameFromVm.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _currentCategoryName = categoryNameFromVm;
+                _currentCategoryId = currentCatId;
+              });
             }
+          });
+        }
 
-            return Column(
-              children: [
-                // رأس القائمة
-                Container(
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.30),
-                    border: const Border(
-                        bottom: BorderSide(color: Color(0x22FFFFFF))),
+        if (st.isLoading && st.allChannels.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final channels = st.allChannels;
+        if (channels.isEmpty) {
+          return const Center(
+            child: Text('لا توجد قنوات لهذا التصنيف',
+                style: TextStyle(color: Colors.white70)),
+          );
+        }
+
+        return Column(
+          children: [
+            // رأس القائمة
+            Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.30),
+                border:
+                    const Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: _popSmooth,
+                    tooltip: 'رجوع',
                   ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: _popSmooth,
-                        tooltip: 'رجوع',
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          _currentCategoryName ?? 'قنوات التصنيف',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      _currentCategoryName ?? categoryNameFromVm,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // القائمة
+            Expanded(
+              child: ScrollbarTheme(
+                data: ScrollbarThemeData(
+                  thumbVisibility: WidgetStateProperty.all(true),
+                  thickness: WidgetStateProperty.all(2.0),
+                  radius: const Radius.circular(8),
+                  trackColor: WidgetStateProperty.all(Colors.transparent),
+                  trackBorderColor: WidgetStateProperty.all(Colors.transparent),
+                  thumbColor: WidgetStateProperty.resolveWith(
+                    (states) => Colors.white.withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Scrollbar(
+                  controller: _leftPaneScroll,
+                  child: ListView.separated(
+                    controller: _leftPaneScroll,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    itemCount: channels.length,
+                    separatorBuilder: (_, __) => Divider(
+                        color: Colors.white.withValues(alpha: 0.07), height: 1),
+                    itemBuilder: (context, i) {
+                      final ch = channels[i];
+                      final bool isActive = ch.streamId == _currentStreamId;
+                      final bool isLoadingThis =
+                          _isSwitchingChannel && isActive;
+
+                      return ListTile(
+                        dense: true,
+                        visualDensity:
+                            const VisualDensity(horizontal: -2, vertical: -2),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        title: Text(
+                          ch.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isActive ? Colors.white : Colors.white70,
+                            fontSize: 13,
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // القائمة
-                Expanded(
-                  child: ScrollbarTheme(
-                    data: ScrollbarThemeData(
-                      thumbVisibility: WidgetStateProperty.all(true),
-                      thickness: WidgetStateProperty.all(2.0), // أنحف
-                      radius: const Radius.circular(8),
-                      trackColor: WidgetStateProperty.all(Colors.transparent),
-                      trackBorderColor:
-                          WidgetStateProperty.all(Colors.transparent),
-                      thumbColor: WidgetStateProperty.resolveWith(
-                        (states) => Colors.white.withValues(alpha: 0.22),
-                      ),
-                    ),
-                    child: Scrollbar(
-                      controller: _leftPaneScroll,
-                      child: ListView.separated(
-                        controller: _leftPaneScroll,
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        itemCount: channels.length,
-                        separatorBuilder: (_, __) => Divider(
-                            color: Colors.white.withValues(alpha: 0.07),
-                            height: 1),
-                        itemBuilder: (context, i) {
-                          final ch = channels[i];
-                          final bool isActive = ch.streamId == _currentStreamId;
-                          final bool isLoadingThis = _isSwitchingChannel &&
-                              ch.streamId == _currentStreamId;
-
-                          return ListTile(
-                            dense: true,
-                            visualDensity: const VisualDensity(
-                                horizontal: -2, vertical: -2),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            title: Text(
-                              ch.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: isActive ? Colors.white : Colors.white70,
-                                fontSize: 13,
-                                fontWeight: isActive
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                            // ignore: unnecessary_null_comparison
-                            subtitle: (ch.categoryId) != null
-                                ? Text(
-                                    (ch.categoryId),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                        color: Colors.white54, fontSize: 11),
-                                  )
-                                : null,
-                            trailing: isActive
-                                ? (isLoadingThis
-                                    ? const SizedBox(
-                                        height: 16,
-                                        width: 16,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))
-                                    : const Icon(Icons.play_arrow,
-                                        color: Colors.white, size: 16))
-                                : const Icon(Icons.tv,
-                                    color: Colors.white54, size: 16),
-                            onTap: () async {
-                              if (isActive) return;
-                              await _switchLiveChannel(ch);
-                            },
-                          );
+                        subtitle: (ch.categoryId).isNotEmpty
+                            ? Text(
+                                ch.categoryId,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: Colors.white54, fontSize: 11),
+                              )
+                            : null,
+                        trailing: isActive
+                            ? (isLoadingThis
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))
+                                : const Icon(Icons.play_arrow,
+                                    color: Colors.white, size: 16))
+                            : const Icon(Icons.tv,
+                                color: Colors.white54, size: 16),
+                        onTap: () async {
+                          if (isActive) return;
+                          await _switchLiveChannel(ch);
                         },
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+
+            if (st.isLoadingMore)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -1400,17 +1422,30 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
     final double kPaneMax = (screen.width * 0.7).clamp(220.0, 520.0);
     const double kDivider = 4.0;
 
+    // سنقرأ اسم التصنيف للعرض من الـ ViewModel كي نظهره في شريط المعلومات بأسفل الفيديو
+    String categoryNameForUi = '';
+    final rightPane = Consumer(
+      builder: (context, ref, _) {
+        final st = ref.watch(liveViewModelProvider);
+        if (_isLive) {
+          final m = st.categories.cast<Map<String, String>>().where(
+              (e) => e['id'] == (_currentCategoryId ?? st.selectedCategoryId));
+          categoryNameForUi = m.isNotEmpty ? (m.first['name'] ?? '') : '';
+        }
+        return Column(
+          children: [
+            Expanded(child: _buildPlayerStack(ar)),
+            if (_isLive && !_isFullscreen)
+              _buildChannelInfoBar(categoryNameForUi),
+          ],
+        );
+      },
+    );
+
     final double leftW = _isLive && !_isFullscreen
         ? _leftPaneWidth.clamp(kPaneMin, kPaneMax)
         : 0.0;
     final double dividerW = _isLive && !_isFullscreen ? kDivider : 0.0;
-
-    final rightPane = Column(
-      children: [
-        Expanded(child: _buildPlayerStack(ar)),
-        if (_isLive && !_isFullscreen) _buildChannelInfoBar(),
-      ],
-    );
 
     final body = Focus(
       focusNode: _screenKbFocus,
@@ -1447,7 +1482,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
         bottom: false,
         child: Row(
           children: [
-            // اللوحة اليسرى
+            // اللوحة اليسرى (قائمة القنوات حسب التصنيف المختار من الـ VM)
             AnimatedContainer(
               duration: const Duration(milliseconds: 220),
               curve: Curves.easeOutCubic,
@@ -1478,7 +1513,7 @@ class _UniversalPlayerMobileState extends State<UniversalPlayerMobile>
                       },
                     ),
             ),
-            // اللوحة اليمنى
+            // اللوحة اليمنى (المشغّل)
             Expanded(child: rightPane),
           ],
         ),
